@@ -208,9 +208,12 @@
       }
     });
 
-    document.getElementById('pieces').addEventListener('dragstart', e => {
-      e.dataTransfer.setData('text', e.target.dataset.index);
-    });
+generatePieces();
+document.querySelectorAll('.piece').forEach(piece => {
+  piece.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('text', e.currentTarget.dataset.index);
+  });
+});
 
     drawGrid();
     generatePieces();
