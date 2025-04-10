@@ -14,13 +14,19 @@
       color: #d63384;
       text-align: center;
     }
+    h1 {
+      margin-bottom: 0;
+    }
     canvas {
       background-color: #fff0f5;
       border: 4px solid #d63384;
-      margin-top: 20px;
+      margin-top: 10px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
     .message {
-      margin-top: 20px;
+      margin-top: 15px;
       font-size: 1.2rem;
     }
   </style>
@@ -28,18 +34,13 @@
 <body>
   <h1>For Sara 💖</h1>
   <canvas id="gameCanvas" width="480" height="480"></canvas>
-  <div class="message" id="messageBox">You are so stunning, my love 💗</div>
+  <div class="message" id="messageBox">Loading your love note...</div>
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const gridSize = 8;
     const cellSize = canvas.width / gridSize;
-
-    let grid = Array.from({ length: gridSize }, () =>
-      Array.from({ length: gridSize }, () => null)
-    );
-
-    const loveMessages = [
+    const messages = [
       "I love you so much, baby 💗",
       "You make me smile every day 😊",
       "You are so stunning, my love 😍",
@@ -50,57 +51,95 @@
       "I'm so lucky to have you 💕"
     ];
 
+    let grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
+
+    function randomBlock() {
+      const blocks = [
+        { color: '#ff4d88', icon: '💗' },
+        { color: '#ff6666', icon: '❤️' },
+        { color: '#ff9999', icon: '🌹' },
+        { color: '#ff3366', icon: '💣', bomb: true }
+      ];
+      return blocks[Math.floor(Math.random() * blocks.length)];
+    }
+
+    function fillGridRandom() {
+      for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+          if (Math.random() < 0.25) {
+            grid[y][x] = randomBlock();
+          }
+        }
+      }
+    }
+
     function drawGrid() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (let y = 0; y < gridSize; y++) {
         for (let x = 0; x < gridSize; x++) {
           ctx.strokeStyle = '#ccc';
           ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
-          if (grid[y][x]) {
-            ctx.fillStyle = grid[y][x].color;
+          const block = grid[y][x];
+          if (block) {
+            ctx.fillStyle = block.color;
             ctx.fillRect(x * cellSize + 4, y * cellSize + 4, cellSize - 8, cellSize - 8);
             ctx.fillStyle = '#fff';
             ctx.font = '16px Arial';
-            ctx.fillText(grid[y][x].icon, x * cellSize + 10, y * cellSize + 25);
+            ctx.fillText(block.icon, x * cellSize + 10, y * cellSize + 25);
           }
         }
       }
     }
 
-    function randomBlock() {
-      const types = [
-        { color: '#ff4d88', icon: '💗' },
-        { color: '#ff6666', icon: '❤️' },
-        { color: '#ff9999', icon: '🌹' }
-      ];
-      return types[Math.floor(Math.random() * types.length)];
+    function showMessage() {
+      const msg = messages[Math.floor(Math.random() * messages.length)];
+      document.getElementById("messageBox").textContent = msg;
     }
 
-    function fillGridRandomly() {
-      for (let y = 0; y < gridSize; y++) {
-        for (let x = 0; x < gridSize; x++) {
-          if (Math.random() < 0.3) grid[y][x] = randomBlock();
+    function handleClick(event) {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.floor((event.clientX - rect.left) / cellSize);
+      const y = Math.floor((event.clientY - rect.top) / cellSize);
+      if (grid[y][x]) {
+        if (grid[y][x].bomb) {
+          explode3x3(x, y);
+        } else {
+          grid[y][x] = null;
+        }
+        drawGrid();
+        showMessage();
+        saveProgress();
+      }
+    }
+
+    function explode3x3(cx, cy) {
+      for (let y = cy - 1; y <= cy + 1; y++) {
+        for (let x = cx - 1; x <= cx + 1; x++) {
+          if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+            grid[y][x] = null;
+          }
         }
       }
     }
 
-    function showMessage() {
-      const msg = loveMessages[Math.floor(Math.random() * loveMessages.length)];
-      document.getElementById("messageBox").textContent = msg;
+    function saveProgress() {
+      localStorage.setItem("valentineGrid", JSON.stringify(grid));
     }
 
-    if (localStorage.getItem('sara-grid')) {
-      grid = JSON.parse(localStorage.getItem('sara-grid'));
-    } else {
-      fillGridRandomly();
+    function loadProgress() {
+      const saved = localStorage.getItem("valentineGrid");
+      if (saved) {
+        grid = JSON.parse(saved);
+      } else {
+        fillGridRandom();
+      }
     }
 
+    canvas.addEventListener('click', handleClick);
+
+    loadProgress();
     drawGrid();
     showMessage();
-
-    setInterval(() => {
-      localStorage.setItem('sara-grid', JSON.stringify(grid));
-    }, 5000);
   </script>
 </body>
 </html>
