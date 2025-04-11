@@ -171,7 +171,7 @@
 
       document.querySelectorAll('.piece').forEach(piece => {
         piece.addEventListener('dragstart', e => {
-          dragPieceIndex = e.currentTarget.dataset.index;
+          dragPieceIndex = parseInt(e.currentTarget.dataset.index);
           e.dataTransfer.setData('text/plain', dragPieceIndex);
         });
       });
@@ -264,7 +264,7 @@
   e.preventDefault();
   const index = dragPieceIndex;
   if (index === null) return;
-  const piece = currentPieces[index];
+  const piece = currentPieces[parseInt(index)];
   const shape = piece.shape;
 
   const rect = canvas.getBoundingClientRect();
