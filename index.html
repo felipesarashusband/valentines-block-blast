@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Valentine's Block Blast - For Sara</title>
   <style>
     body {
@@ -97,21 +97,15 @@
     let level = 1;
     let goal = 100;
 
-    const scoreDisplay = document.getElementById("score");
-    const levelDisplay = document.getElementById("level");
-    const goalDisplay = document.getElementById("goal");
-    const restartBtn = document.getElementById("restartBtn");
-
-    const shapes = [
-      [[1]], [[1, 1]], [[1], [1]],
-      [[1, 1], [1, 0]], [[1, 1], [0, 1]],
-      [[1, 1, 1]], [[1], [1], [1]]
-    ];
+    const scoreDisplay = () => document.getElementById("score");
+    const levelDisplay = () => document.getElementById("level");
+    const goalDisplay = () => document.getElementById("goal");
+    const restartBtn = () => document.getElementById("restartBtn");
 
     function updateScoreDisplay() {
-      scoreDisplay.textContent = score;
-      levelDisplay.textContent = level;
-      goalDisplay.textContent = goal;
+      scoreDisplay().textContent = score;
+      levelDisplay().textContent = level;
+      goalDisplay().textContent = goal;
     }
 
     function randomBlock() {
@@ -148,6 +142,12 @@
       const container = document.getElementById("pieces");
       container.innerHTML = "";
       currentPieces = [];
+
+      const shapes = [
+        [[1]], [[1, 1]], [[1], [1]],
+        [[1, 1], [1, 0]], [[1, 1], [0, 1]],
+        [[1, 1, 1]], [[1], [1], [1]]
+      ];
 
       for (let i = 0; i < 3; i++) {
         const shape = shapes[Math.floor(Math.random() * shapes.length)];
@@ -205,55 +205,20 @@
       return true;
     }
 
-    function checkGameOver() {
-      let hasMove = false;
-      currentPieces.forEach(({ shape }) => {
-        for (let gy = 0; gy <= 8 - shape.length; gy++) {
-          for (let gx = 0; gx <= 8 - shape[0].length; gx++) {
-            let fits = true;
-            for (let y = 0; y < shape.length; y++) {
-              for (let x = 0; x < shape[0].length; x++) {
-                if (shape[y][x] && grid[gy + y][gx + x]) fits = false;
-              }
-            }
-            if (fits) hasMove = true;
-          }
-        }
-      });
-      if (!hasMove) restartBtn.style.display = "inline-block";
-    }
-
-    function showMessage() {
-      const messages = [
-        "I love you so much, baby 💗",
-        "You make me smile every day 😊",
-        "You are so stunning, my love 😍",
-        "Sara, you're my everything ❤️"
-      ];
-      document.getElementById("messageBox").textContent = messages[Math.floor(Math.random() * messages.length)];
-    }
-
     function checkAndClearLines() {
       let clearedBlocks = 0;
-
       for (let y = 0; y < 8; y++) {
         if (grid[y].every(cell => cell)) {
           grid[y] = Array(8).fill(null);
           clearedBlocks += 8;
         }
       }
-
       for (let x = 0; x < 8; x++) {
-        let colFull = true;
-        for (let y = 0; y < 8; y++) {
-          if (!grid[y][x]) colFull = false;
-        }
-        if (colFull) {
+        if (grid.every(row => row[x])) {
           for (let y = 0; y < 8; y++) grid[y][x] = null;
           clearedBlocks += 8;
         }
       }
-
       if (clearedBlocks > 0) {
         score += clearedBlocks;
         updateScoreDisplay();
@@ -263,30 +228,60 @@
           updateScoreDisplay();
         }
       }
-      checkGameOver();
     }
 
-    restartBtn.onclick = () => {
-      grid = Array.from({ length: 8 }, () => Array(8).fill(null));
-      score = 0;
-      level = 1;
-      goal = 100;
-      restartBtn.style.display = "none";
-      drawGrid();
-      generatePieces();
-      showMessage();
-      updateScoreDisplay();
-    };
+    function showMessage() {
+      const messages = [
+        "I love you so much, baby 💗",
+        "You make my shit go blu blu blu 💖",
+        "You make me smile every day 😊",
+        "You are so stunning, my love 😍",
+        "Sara, you're my everything ❤️"
+      ];
+      document.getElementById("messageBox").textContent = messages[Math.floor(Math.random() * messages.length)];
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       canvas = document.getElementById('gameCanvas');
       ctx = canvas.getContext('2d');
 
-      canvas.addEventListener('dragover', e => e.preventDefault());
-      canvas.addEventListener('drop', e => {
+      canvas.addEventListener('dragover', (e) => {
         e.preventDefault();
-        if (dragPieceIndex === null || dragPieceIndex >= currentPieces.length) return;
-        const piece = currentPieces[dragPieceIndex];
+        const index = dragPieceIndex;
+        if (index === null || !currentPieces[index]) return;
+        const piece = currentPieces[index];
+        const rect = canvas.getBoundingClientRect();
+        const dropX = e.clientX - rect.left;
+        const dropY = e.clientY - rect.top;
+        const gx = Math.round(dropX / 60 - piece.shape[0].length / 2);
+        const gy = Math.round(dropY / 60 - piece.shape.length / 2);
+        drawGrid();
+        ctx.globalAlpha = 0.5;
+        for (let y = 0; y < piece.shape.length; y++) {
+          for (let x = 0; x < piece.shape[y].length; x++) {
+            if (piece.shape[y][x]) {
+              const px = gx + x;
+              const py = gy + y;
+              if (px >= 0 && px < 8 && py >= 0 && py < 8) {
+                ctx.fillStyle = piece.block.color;
+                ctx.fillRect(px * 60 + 2, py * 60 + 2, 56, 56);
+                ctx.fillStyle = '#fff';
+                ctx.font = '42px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(piece.block.icon, px * 60 + 30, py * 60 + 30);
+              }
+            }
+          }
+        }
+        ctx.globalAlpha = 1;
+      });
+
+      canvas.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const index = dragPieceIndex;
+        if (index === null || !currentPieces[index]) return;
+        const piece = currentPieces[index];
         const rect = canvas.getBoundingClientRect();
         const dropX = e.clientX - rect.left;
         const dropY = e.clientY - rect.top;
@@ -297,8 +292,9 @@
           drawGrid();
           checkAndClearLines();
           showMessage();
-          currentPieces.splice(dragPieceIndex, 1);
-          document.getElementById('pieces').children[dragPieceIndex].remove();
+          currentPieces.splice(index, 1);
+          const pieceEls = document.querySelectorAll('.piece');
+          if (pieceEls[index]) pieceEls[index].remove();
           dragPieceIndex = null;
           if (currentPieces.length === 0) generatePieces();
         }
