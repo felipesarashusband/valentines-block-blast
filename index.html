@@ -11,17 +11,20 @@
       font-family: 'Arial', sans-serif;
       background: #ffe6f0;
       color: #d63384;
-      text-align: center;
-      overflow-x: hidden;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 20px;
     }
-    h1 {
-      margin-bottom: 10px;
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     canvas {
       background-color: #fff0f5;
       border: 4px solid #d63384;
-      display: block;
-      margin: 10px auto;
     }
     .pieces {
       display: flex;
@@ -46,288 +49,189 @@
       color: white;
       transition: transform 0.2s ease;
     }
-    .message {
-      margin-top: 20px;
-      font-size: 1.2rem;
+    .sidebar {
+      width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
-    .heart {
-      position: fixed;
-      bottom: 0;
-      font-size: 24px;
-      animation: floatUp 2s ease-out forwards;
+    .score-box {
+      padding: 10px;
+      border: 2px solid #d63384;
+      background: #fff0f5;
+      border-radius: 10px;
     }
-    .placed {
-      animation: popIn 0.3s ease-out;
-    }
-    @keyframes floatUp {
-      0% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      100% {
-        opacity: 0;
-        transform: translateY(-200px);
-      }
-    }
-    @keyframes popIn {
-      0% {
-        transform: scale(0.5);
-        opacity: 0;
-      }
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
+    .restart-btn {
+      display: none;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      border: none;
+      background-color: #ff4d88;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1>For Sara 💖</h1>
-  <canvas id="gameCanvas" width="480" height="480"></canvas>
-  <div class="pieces" id="pieces"></div>
-  <div class="message" id="messageBox">You are so stunning, my love 💗</div>
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const gridSize = 8;
-    const cellSize = canvas.width / gridSize;
-    let grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
+  <div class="game-container">
+    <h1>For Sara 💖</h1>
+    <canvas id="gameCanvas" width="480" height="480"></canvas>
+    <div class="pieces" id="pieces"></div>
+  </div>
+  <div class="sidebar">
+    <div class="score-box">
+      <div>Score: <span id="score">0</span></div>
+      <div>Level: <span id="level">1</span></div>
+      <div>Goal: <span id="goal">100</span></div>
+    </div>
+    <button id="restartBtn" class="restart-btn">Restart 🔁</button>
+    <div class="message" id="messageBox">You are so stunning, my love 💗</div>
+  </div>
+<script>
+let score = 0;
+let level = 1;
+let goal = 100;
 
-    const loveMessages = [
-      "I love you so much, baby 💗",
-      "You make me smile every day 😊",
-      "You are so stunning, my love 😍",
-      "Sara, you're my everything ❤️",
-      "Life is better with you 🌹",
-      "You're the heart of my world 💖",
-      "Every day with you is a dream ✨",
-      "I'm so lucky to have you 💕"
-    ];
+const scoreDisplay = document.getElementById("score");
+const levelDisplay = document.getElementById("level");
+const goalDisplay = document.getElementById("goal");
+const restartBtn = document.getElementById("restartBtn");
 
-    const shapes = [
-      [[1]], [[1, 1]], [[1], [1]], [[1, 1], [1, 0]], [[1, 1], [0, 1]], [[1, 1, 1]], [[1], [1], [1]]
-    ];
+function updateScoreDisplay() {
+  scoreDisplay.textContent = score;
+  levelDisplay.textContent = level;
+  goalDisplay.textContent = goal;
+}
 
-    let currentPieces = [];
-    let dragPieceIndex = null;
-
-    function drawGrid() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (let y = 0; y < gridSize; y++) {
-        for (let x = 0; x < gridSize; x++) {
-          ctx.strokeStyle = '#ccc';
-          ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
-          const block = grid[y][x];
-          if (block) {
-            ctx.fillStyle = block.color;
-            ctx.fillRect(x * cellSize + 2, y * cellSize + 2, cellSize - 4, cellSize - 4);
-            ctx.fillStyle = '#fff';
-            ctx.font = '42px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(block.icon, x * cellSize + cellSize / 2, y * cellSize + cellSize / 2);
+function checkGameOver() {
+  let hasMove = false;
+  currentPieces.forEach(({ shape }) => {
+    for (let gy = 0; gy <= 8 - shape.length; gy++) {
+      for (let gx = 0; gx <= 8 - shape[0].length; gx++) {
+        let fits = true;
+        for (let y = 0; y < shape.length; y++) {
+          for (let x = 0; x < shape[0].length; x++) {
+            if (shape[y][x] && grid[gy + y][gx + x]) fits = false;
           }
         }
+        if (fits) hasMove = true;
       }
     }
+  });
+  if (!hasMove) restartBtn.style.display = "inline-block";
+}
 
-    function randomBlock() {
-      const options = [
-        { color: '#ff4d88', icon: '💗' },
-        { color: '#ff6666', icon: '❤️' },
-        { color: '#ff9999', icon: '🌹' },
-        { color: '#ff3366', icon: '💣', bomb: true }
-      ];
-      return options[Math.floor(Math.random() * options.length)];
-    }
-
-    function generatePieces() {
-      const container = document.getElementById('pieces');
-      container.innerHTML = '';
-      currentPieces = [];
-
-      for (let i = 0; i < 3; i++) {
-        const shape = shapes[Math.floor(Math.random() * shapes.length)];
-        const block = randomBlock();
-        currentPieces.push({ shape, block });
-
-        const div = document.createElement('div');
-        div.className = 'piece';
-        div.draggable = true;
-        div.dataset.index = i;
-        shape.forEach(row => {
-          const rowDiv = document.createElement('div');
-          row.forEach(cell => {
-            const cellDiv = document.createElement('div');
-            cellDiv.className = 'cell';
-            cellDiv.textContent = cell ? block.icon : '';
-            cellDiv.style.backgroundColor = cell ? block.color : 'transparent';
-            rowDiv.appendChild(cellDiv);
-          });
-          div.appendChild(rowDiv);
-        });
-        container.appendChild(div);
-      }
-
-      document.querySelectorAll('.piece').forEach(piece => {
-        piece.addEventListener('dragstart', e => {
-          dragPieceIndex = parseInt(e.currentTarget.dataset.index);
-          e.dataTransfer.setData('text/plain', dragPieceIndex);
-        });
-      });
-    }
-
-    function createHeartBurst(x, y) {
-      for (let i = 0; i < 15; i++) {
-        const heart = document.createElement('div');
-        heart.className = 'heart';
-        heart.style.left = `${x + Math.random() * 100 - 50}px`;
-        heart.style.color = ['#ff4d88', '#ff6666', '#ff9999'][Math.floor(Math.random() * 3)];
-        heart.textContent = '💖';
-        document.body.appendChild(heart);
-        setTimeout(() => heart.remove(), 2000);
-      }
-    }
-
-    function placePiece(piece, gx, gy) {
-      const shape = piece.shape;
-      for (let y = 0; y < shape.length; y++) {
-        for (let x = 0; x < shape[y].length; x++) {
-          if (shape[y][x]) {
-            const px = gx + x;
-            const py = gy + y;
-            if (px < 0 || px >= gridSize || py < 0 || py >= gridSize || grid[py][px]) {
-              return false;
-            }
-          }
-        }
-      }
-      for (let y = 0; y < shape.length; y++) {
-        for (let x = 0; x < shape[y].length; x++) {
-          if (shape[y][x]) {
-            const px = gx + x;
-            const py = gy + y;
-            grid[py][px] = { ...piece.block };
-
-            // Highlight animation
-            const highlight = document.createElement('div');
-            highlight.className = 'cell placed';
-            highlight.style.position = 'absolute';
-            highlight.style.left = `${canvas.offsetLeft + px * cellSize}px`;
-            highlight.style.top = `${canvas.offsetTop + py * cellSize}px`;
-            highlight.style.width = `${cellSize}px`;
-            highlight.style.height = `${cellSize}px`;
-            highlight.style.backgroundColor = piece.block.color;
-            highlight.style.color = 'white';
-            highlight.style.lineHeight = `${cellSize}px`;
-            highlight.textContent = piece.block.icon;
-            highlight.style.fontSize = '42px';
-            highlight.style.zIndex = 100;
-            document.body.appendChild(highlight);
-            setTimeout(() => highlight.remove(), 300);
-          }
-        }
-      }
-      return true;
-    }
-
-    function checkAndClearLines() {
-      let cleared = false;
-      for (let y = 0; y < gridSize; y++) {
-        if (grid[y].every(cell => cell)) {
-          grid[y] = Array(gridSize).fill(null);
-          cleared = true;
-        }
-      }
-      for (let x = 0; x < gridSize; x++) {
-        let colFull = true;
-        for (let y = 0; y < gridSize; y++) {
-          if (!grid[y][x]) colFull = false;
-        }
-        if (colFull) {
-          for (let y = 0; y < gridSize; y++) grid[y][x] = null;
-          cleared = true;
-        }
-      }
-      if (cleared) {
-        const centerX = canvas.offsetLeft + canvas.width / 2;
-        createHeartBurst(centerX, window.innerHeight);
-      }
-    }
-
-    function showMessage() {
-      const msg = loveMessages[Math.floor(Math.random() * loveMessages.length)];
-      document.getElementById('messageBox').textContent = msg;
-    }
-
-    canvas.addEventListener('dragover', e => {
-  e.preventDefault();
-  const index = dragPieceIndex;
-  if (index === null) return;
-  const piece = currentPieces[parseInt(index)];
-  const shape = piece.shape;
-
-  const rect = canvas.getBoundingClientRect();
-  const dropX = e.clientX - rect.left;
-  const dropY = e.clientY - rect.top;
-
-  const shapeWidth = shape[0].length * cellSize;
-  const shapeHeight = shape.length * cellSize;
-
-  const gx = Math.round((dropX - shapeWidth / 2) / cellSize);
-  const gy = Math.round((dropY - shapeHeight / 2) / cellSize);
-
+restartBtn.onclick = () => {
+  grid = Array.from({ length: 8 }, () => Array(8).fill(null));
   drawGrid();
-  ctx.globalAlpha = 0.5;
-  for (let y = 0; y < shape.length; y++) {
-    for (let x = 0; x < shape[y].length; x++) {
-      if (shape[y][x]) {
-        const px = gx + x;
-        const py = gy + y;
-        if (px >= 0 && px < gridSize && py >= 0 && py < gridSize && !grid[py][px]) {
-          ctx.fillStyle = piece.block.color;
-          ctx.fillRect(px * cellSize + 2, py * cellSize + 2, cellSize - 4, cellSize - 4);
-          ctx.fillStyle = '#fff';
-          ctx.font = '42px Arial';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(piece.block.icon, px * cellSize + cellSize / 2, py * cellSize + cellSize / 2);
-        }
-      }
+  generatePieces();
+  showMessage();
+  score = 0;
+  level = 1;
+  goal = 100;
+  updateScoreDisplay();
+  restartBtn.style.display = "none";
+};
+function checkAndClearLines() {
+  let clearedBlocks = 0;
+
+  for (let y = 0; y < 8; y++) {
+    if (grid[y].every(cell => cell)) {
+      grid[y] = Array(8).fill(null);
+      clearedBlocks += 8;
     }
   }
-  ctx.globalAlpha = 1;
-});
-    canvas.addEventListener('drop', e => {
-      e.preventDefault();
-      const index = dragPieceIndex;
-      if (index === null) return;
-      const piece = currentPieces[index];
-      const shape = piece.shape;
 
-      const rect = canvas.getBoundingClientRect();
-      const dropX = e.clientX - rect.left;
-      const dropY = e.clientY - rect.top;
+  for (let x = 0; x < 8; x++) {
+    let colFull = true;
+    for (let y = 0; y < 8; y++) {
+      if (!grid[y][x]) colFull = false;
+    }
+    if (colFull) {
+      for (let y = 0; y < 8; y++) grid[y][x] = null;
+      clearedBlocks += 8;
+    }
+  }
 
-      const shapeWidth = shape[0].length * cellSize;
-      const shapeHeight = shape.length * cellSize;
+  if (clearedBlocks > 0) {
+    const centerX = canvas.offsetLeft + canvas.width / 2;
+    createHeartBurst(centerX, window.innerHeight);
+    score += clearedBlocks;
+    updateScoreDisplay();
+    if (score >= goal) {
+      level += 1;
+      goal = 100 + level * 50;
+      updateScoreDisplay();
+    }
+  }
 
-      const gx = Math.round((dropX - shapeWidth / 2) / cellSize);
-      const gy = Math.round((dropY - shapeHeight / 2) / cellSize);
+  checkGameOver();
+}
+function showConfetti() {
+  for (let i = 0; i < 40; i++) {
+    const heart = document.createElement('div');
+    heart.textContent = '💖';
+    heart.style.position = 'fixed';
+    heart.style.left = `${Math.random() * 100}%`;
+    heart.style.top = '100%';
+    heart.style.fontSize = `${Math.random() * 20 + 20}px`;
+    heart.style.animation = `floatConfetti ${Math.random() * 2 + 2}s ease-out forwards`;
+    document.body.appendChild(heart);
+    setTimeout(() => heart.remove(), 4000);
+  }
+}
 
-      if (placePiece(piece, gx, gy)) {
-        drawGrid();
-        checkAndClearLines();
-        showMessage();
-        currentPieces.splice(index, 1);
-        document.getElementById('pieces').children[index].remove();
-        if (currentPieces.length === 0) generatePieces();
-      }
-    });
+const confettiStyle = document.createElement('style');
+confettiStyle.textContent = `
+@keyframes floatConfetti {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh);
+    opacity: 0;
+  }
+}`;
+document.head.appendChild(confettiStyle);
 
-    drawGrid();
-    generatePieces();
-    showMessage();
-  </script>
+function checkAndClearLines() {
+  let clearedBlocks = 0;
+
+  for (let y = 0; y < 8; y++) {
+    if (grid[y].every(cell => cell)) {
+      grid[y] = Array(8).fill(null);
+      clearedBlocks += 8;
+    }
+  }
+
+  for (let x = 0; x < 8; x++) {
+    let colFull = true;
+    for (let y = 0; y < 8; y++) {
+      if (!grid[y][x]) colFull = false;
+    }
+    if (colFull) {
+      for (let y = 0; y < 8; y++) grid[y][x] = null;
+      clearedBlocks += 8;
+    }
+  }
+
+  if (clearedBlocks > 0) {
+    const centerX = canvas.offsetLeft + canvas.width / 2;
+    createHeartBurst(centerX, window.innerHeight);
+    score += clearedBlocks;
+    updateScoreDisplay();
+    if (score >= goal) {
+      level += 1;
+      goal = 100 + level * 50;
+      updateScoreDisplay();
+      showConfetti();
+    }
+  }
+
+  checkGameOver();
+}
+</script>
 </body>
 </html>
