@@ -118,8 +118,8 @@ function drawGrid() {
 
 
 document.addEventListener('DOMContentLoaded', () => {
-  const canvas = document.getElementById('gameCanvas');
-  const ctx = canvas.getContext('2d');
+  canvas = document.getElementById('gameCanvas');
+  ctx = canvas.getContext('2d');
   window.canvas = canvas;
   window.ctx = ctx;
   drawGrid();
@@ -128,7 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-let canvas, ctx;
+let canvas = null;
+let ctx = null;
 document.addEventListener('DOMContentLoaded', () => {
   canvas = document.getElementById('gameCanvas');
   ctx = canvas.getContext('2d');
