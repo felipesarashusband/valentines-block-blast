@@ -90,11 +90,9 @@
   </div>
   <script>
     window.onerror = function (msg, url, lineNo, columnNo, error) {
-      alert("Error: " + msg + "
-Line: " + lineNo + "
-Column: " + columnNo);
-      return false;
-    };
+  console.error("Error:", msg, "at line:", lineNo, "column:", columnNo);
+  return false;
+};
     let canvas, ctx;
     let grid = Array.from({ length: 8 }, () => Array(8).fill(null));
     let dragPieceId = null;
