@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Valentine's Block Blast - For Sara</title>
   <style>
     body {
@@ -91,21 +91,22 @@
   <script>
     let canvas, ctx;
     let grid = Array.from({ length: 8 }, () => Array(8).fill(null));
-    let dragPieceIndex = null;
+    let dragPieceId = null;
     let currentPieces = [];
     let score = 0;
     let level = 1;
     let goal = 100;
 
-    const scoreDisplay = () => document.getElementById("score");
-    const levelDisplay = () => document.getElementById("level");
-    const goalDisplay = () => document.getElementById("goal");
-    const restartBtn = () => document.getElementById("restartBtn");
+    const shapes = [
+      [[1]], [[1, 1]], [[1], [1]],
+      [[1, 1], [1, 0]], [[1, 1], [0, 1]],
+      [[1, 1, 1]], [[1], [1], [1]]
+    ];
 
     function updateScoreDisplay() {
-      scoreDisplay().textContent = score;
-      levelDisplay().textContent = level;
-      goalDisplay().textContent = goal;
+      document.getElementById("score").textContent = score;
+      document.getElementById("level").textContent = level;
+      document.getElementById("goal").textContent = goal;
     }
 
     function randomBlock() {
@@ -139,47 +140,37 @@
     }
 
     function generatePieces() {
-  const container = document.getElementById("pieces");
-  container.innerHTML = "";
-  currentPieces = [];
+      const container = document.getElementById("pieces");
+      container.innerHTML = "";
+      currentPieces = [];
 
-  const shapes = [
-    [[1]], [[1, 1]], [[1], [1]],
-    [[1, 1], [1, 0]], [[1, 1], [0, 1]],
-    [[1, 1, 1]], [[1], [1], [1]]
-  ];
+      for (let i = 0; i < 3; i++) {
+        const shape = shapes[Math.floor(Math.random() * shapes.length)];
+        const block = randomBlock();
+        const id = crypto.randomUUID();
+        currentPieces.push({ id, shape, block });
 
-  for (let i = 0; i < 3; i++) {
-    const shape = shapes[Math.floor(Math.random() * shapes.length)];
-    const block = randomBlock();
-    const id = Math.random().toString(36).substr(2, 9);
-    currentPieces.push({ id, shape, block });
+        const div = document.createElement("div");
+        div.className = "piece";
+        div.draggable = true;
+        div.dataset.id = id;
+        shape.forEach((row) => {
+          const rowDiv = document.createElement("div");
+          row.forEach((cell) => {
+            const cellDiv = document.createElement("div");
+            cellDiv.className = "cell";
+            cellDiv.textContent = cell ? block.icon : "";
+            cellDiv.style.backgroundColor = cell ? block.color : "transparent";
+            rowDiv.appendChild(cellDiv);
+          });
+          div.appendChild(rowDiv);
+        });
+        container.appendChild(div);
+      }
 
-    const div = document.createElement("div");
-    div.className = "piece";
-    div.draggable = true;
-    div.dataset.id = id;
-    shape.forEach((row) => {
-      const rowDiv = document.createElement("div");
-      row.forEach((cell) => {
-        const cellDiv = document.createElement("div");
-        cellDiv.className = "cell";
-        cellDiv.textContent = cell ? block.icon : "";
-        cellDiv.style.backgroundColor = cell ? block.color : "transparent";
-        rowDiv.appendChild(cellDiv);
-      });
-      div.appendChild(rowDiv);
-    });
-    container.appendChild(div);
-  }
-
-  document.querySelectorAll(".piece").forEach((piece) => {
-    piece.addEventListener("dragstart", (e) => {
-      dragPieceIndex = e.currentTarget.dataset.id;
-      e.dataTransfer.setData("text/plain", dragPieceIndex);
-    });
-  });
-          e.dataTransfer.setData("text/plain", dragPieceIndex);
+      document.querySelectorAll(".piece").forEach((piece) => {
+        piece.addEventListener("dragstart", (e) => {
+          dragPieceId = e.currentTarget.dataset.id;
         });
       });
     }
@@ -209,105 +200,18 @@
       return true;
     }
 
-    function checkAndClearLines() {
-      let clearedBlocks = 0;
-      for (let y = 0; y < 8; y++) {
-        if (grid[y].every(cell => cell)) {
-          grid[y] = Array(8).fill(null);
-          clearedBlocks += 8;
-        }
-      }
-      for (let x = 0; x < 8; x++) {
-        if (grid.every(row => row[x])) {
-          for (let y = 0; y < 8; y++) grid[y][x] = null;
-          clearedBlocks += 8;
-        }
-      }
-      if (clearedBlocks > 0) {
-        score += clearedBlocks;
-        updateScoreDisplay();
-        if (score >= goal) {
-          level++;
-          goal = 100 + level * 50;
-          updateScoreDisplay();
-        }
-      }
-    }
-
-    function showMessage() {
-      const messages = [
-        "I love you so much, baby 💗",
-        "You make my shit go blu blu blu 💖",
-        "You make me smile every day 😊",
-        "You are so stunning, my love 😍",
-        "Sara, you're my everything ❤️"
-      ];
-      document.getElementById("messageBox").textContent = messages[Math.floor(Math.random() * messages.length)];
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
       canvas = document.getElementById('gameCanvas');
       ctx = canvas.getContext('2d');
 
-      canvas.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        const index = dragPieceIndex;
-        if (index === null || !currentPieces[index]) return;
-        const piece = currentPieces[index];
-        const rect = canvas.getBoundingClientRect();
-        const dropX = e.clientX - rect.left;
-        const dropY = e.clientY - rect.top;
-        const gx = Math.round(dropX / 60 - piece.shape[0].length / 2);
-        const gy = Math.round(dropY / 60 - piece.shape.length / 2);
-        drawGrid();
-        ctx.globalAlpha = 0.5;
-        for (let y = 0; y < piece.shape.length; y++) {
-          for (let x = 0; x < piece.shape[y].length; x++) {
-            if (piece.shape[y][x]) {
-              const px = gx + x;
-              const py = gy + y;
-              if (px >= 0 && px < 8 && py >= 0 && py < 8) {
-                ctx.fillStyle = piece.block.color;
-                ctx.fillRect(px * 60 + 2, py * 60 + 2, 56, 56);
-                ctx.fillStyle = '#fff';
-                ctx.font = '42px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(piece.block.icon, px * 60 + 30, py * 60 + 30);
-              }
-            }
-          }
-        }
-        ctx.globalAlpha = 1;
-      });
+      canvas.addEventListener('dragover', (e) => e.preventDefault());
 
       canvas.addEventListener('drop', (e) => {
-  e.preventDefault();
-  const id = dragPieceIndex;
-  if (!id) return;
-  const index = currentPieces.findIndex(p => p.id === id);
-  if (index === -1) return;
-  const piece = currentPieces[index];
-  const rect = canvas.getBoundingClientRect();
-  const dropX = e.clientX - rect.left;
-  const dropY = e.clientY - rect.top;
-  const gx = Math.round(dropX / 60 - piece.shape[0].length / 2);
-  const gy = Math.round(dropY / 60 - piece.shape.length / 2);
+        e.preventDefault();
+        const id = dragPieceId;
+        const piece = currentPieces.find(p => p.id === id);
+        if (!piece) return;
 
-  if (placePiece(piece, gx, gy)) {
-    drawGrid();
-    checkAndClearLines();
-    showMessage();
-    currentPieces.splice(index, 1);
-    const pieceEl = document.querySelector(`.piece[data-id='${id}']`);
-    if (pieceEl) pieceEl.remove();
-    dragPieceIndex = null;
-    if (currentPieces.length === 0) generatePieces();
-  }
-});
-        const index = dragPieceIndex;
-        if (index === null || !currentPieces[index]) return;
-        const piece = currentPieces[index];
         const rect = canvas.getBoundingClientRect();
         const dropX = e.clientX - rect.left;
         const dropY = e.clientY - rect.top;
@@ -316,12 +220,10 @@
 
         if (placePiece(piece, gx, gy)) {
           drawGrid();
-          checkAndClearLines();
-          showMessage();
-          currentPieces.splice(index, 1);
-          const pieceEls = document.querySelectorAll('.piece');
-          if (pieceEls[index]) pieceEls[index].remove();
-          dragPieceIndex = null;
+          currentPieces = currentPieces.filter(p => p.id !== id);
+          const el = document.querySelector(`.piece[data-id='${id}']`);
+          if (el) el.remove();
+          dragPieceId = null;
           if (currentPieces.length === 0) generatePieces();
         }
       });
