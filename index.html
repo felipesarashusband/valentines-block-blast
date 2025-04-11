@@ -260,7 +260,44 @@
       document.getElementById('messageBox').textContent = msg;
     }
 
-    canvas.addEventListener('dragover', e => e.preventDefault());
+    canvas.addEventListener('dragover', e => {
+  e.preventDefault();
+  const index = dragPieceIndex;
+  if (index === null) return;
+  const piece = currentPieces[index];
+  const shape = piece.shape;
+
+  const rect = canvas.getBoundingClientRect();
+  const dropX = e.clientX - rect.left;
+  const dropY = e.clientY - rect.top;
+
+  const shapeWidth = shape[0].length * cellSize;
+  const shapeHeight = shape.length * cellSize;
+
+  const gx = Math.round((dropX - shapeWidth / 2) / cellSize);
+  const gy = Math.round((dropY - shapeHeight / 2) / cellSize);
+
+  drawGrid();
+  ctx.globalAlpha = 0.5;
+  for (let y = 0; y < shape.length; y++) {
+    for (let x = 0; x < shape[y].length; x++) {
+      if (shape[y][x]) {
+        const px = gx + x;
+        const py = gy + y;
+        if (px >= 0 && px < gridSize && py >= 0 && py < gridSize && !grid[py][px]) {
+          ctx.fillStyle = piece.block.color;
+          ctx.fillRect(px * cellSize + 2, py * cellSize + 2, cellSize - 4, cellSize - 4);
+          ctx.fillStyle = '#fff';
+          ctx.font = '42px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(piece.block.icon, px * cellSize + cellSize / 2, py * cellSize + cellSize / 2);
+        }
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+});
     canvas.addEventListener('drop', e => {
       e.preventDefault();
       const index = dragPieceIndex;
@@ -275,8 +312,8 @@
       const shapeWidth = shape[0].length * cellSize;
       const shapeHeight = shape.length * cellSize;
 
-      const gx = Math.floor((dropX - shapeWidth / 2) / cellSize);
-      const gy = Math.floor((dropY - shapeHeight / 2) / cellSize);
+      const gx = Math.round((dropX - shapeWidth / 2) / cellSize);
+      const gy = Math.round((dropY - shapeHeight / 2) / cellSize);
 
       if (placePiece(piece, gx, gy)) {
         drawGrid();
