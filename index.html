@@ -42,7 +42,7 @@
       border-radius: 4px;
       text-align: center;
       line-height: 60px;
-      font-size: 28px;
+      font-size: 42px;
       color: white;
       transition: transform 0.2s ease;
     }
@@ -96,6 +96,7 @@
     ];
 
     let currentPieces = [];
+    let dragOffset = { x: 0, y: 0 };
 
     function drawGrid() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -108,8 +109,10 @@
             ctx.fillStyle = block.color;
             ctx.fillRect(x * cellSize + 2, y * cellSize + 2, cellSize - 4, cellSize - 4);
             ctx.fillStyle = '#fff';
-            ctx.font = '16px Arial';
-            ctx.fillText(block.icon, x * cellSize + 10, y * cellSize + 25);
+            ctx.font = '28px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(block.icon, x * cellSize + cellSize / 2, y * cellSize + cellSize / 2);
           }
         }
       }
@@ -155,6 +158,8 @@
 
       document.querySelectorAll('.piece').forEach(piece => {
         piece.addEventListener('dragstart', e => {
+          dragOffset.x = e.offsetX;
+          dragOffset.y = e.offsetY;
           e.dataTransfer.setData('text/plain', e.currentTarget.dataset.index);
         });
       });
@@ -233,8 +238,8 @@
       if (index === '') return;
       const piece = currentPieces[index];
       const rect = canvas.getBoundingClientRect();
-      const gx = Math.floor((e.clientX - rect.left) / cellSize);
-      const gy = Math.floor((e.clientY - rect.top) / cellSize);
+      const gx = Math.floor((e.clientX - rect.left - dragOffset.x) / cellSize);
+      const gy = Math.floor((e.clientY - rect.top - dragOffset.y) / cellSize);
 
       if (placePiece(piece, gx, gy)) {
         drawGrid();
