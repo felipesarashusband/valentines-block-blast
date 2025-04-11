@@ -89,10 +89,7 @@
     <div class="message" id="messageBox">You are so stunning, my love 💗</div>
   </div>
   <script>
-    window.onerror = function (msg, url, lineNo, columnNo, error) {
-  console.error("Error:", msg, "at line:", lineNo, "column:", columnNo);
-  return false;
-};
+    
     let canvas, ctx;
     let grid = Array.from({ length: 8 }, () => Array(8).fill(null));
     let dragPieceId = null;
@@ -151,7 +148,7 @@
       for (let i = 0; i < 3; i++) {
         const shape = shapes[Math.floor(Math.random() * shapes.length)];
         const block = randomBlock();
-        const id = Math.random().toString(36).substr(2, 9);
+        const id = Math.random().toString(36).slice(2, 11);
         currentPieces.push({ id, shape, block });
 
         const div = document.createElement("div");
@@ -213,6 +210,7 @@
       canvas.addEventListener('drop', (e) => {
         e.preventDefault();
         const id = dragPieceId;
+        if (!id) return;
         const piece = currentPieces.find(p => p.id === id);
         if (!piece) return;
 
