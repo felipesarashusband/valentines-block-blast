@@ -12,6 +12,7 @@
       background: #ffe6f0;
       color: #d63384;
       text-align: center;
+      overflow-x: hidden;
     }
     h1 {
       margin-bottom: 10px;
@@ -33,20 +34,37 @@
       display: inline-block;
     }
     .cell {
-      width: 30px;
-      height: 30px;
+      width: 60px;
+      height: 60px;
       background-color: #ff4d88;
       margin: 1px;
       display: inline-block;
       border-radius: 4px;
       text-align: center;
-      line-height: 30px;
-      font-size: 18px;
+      line-height: 60px;
+      font-size: 28px;
       color: white;
+      transition: transform 0.2s ease;
     }
     .message {
       margin-top: 20px;
       font-size: 1.2rem;
+    }
+    .heart {
+      position: fixed;
+      bottom: 0;
+      font-size: 24px;
+      animation: floatUp 2s ease-out forwards;
+    }
+    @keyframes floatUp {
+      0% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-200px);
+      }
     }
   </style>
 </head>
@@ -74,13 +92,7 @@
     ];
 
     const shapes = [
-      [[1]],
-      [[1, 1]],
-      [[1], [1]],
-      [[1, 1], [1, 0]],
-      [[1, 1], [0, 1]],
-      [[1, 1, 1]],
-      [[1], [1], [1]]
+      [[1]], [[1, 1]], [[1], [1]], [[1, 1], [1, 0]], [[1, 1], [0, 1]], [[1, 1, 1]], [[1], [1], [1]]
     ];
 
     let currentPieces = [];
@@ -148,6 +160,18 @@
       });
     }
 
+    function createHeartBurst(x, y) {
+      for (let i = 0; i < 15; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'heart';
+        heart.style.left = `${x + Math.random() * 100 - 50}px`;
+        heart.style.color = ['#ff4d88', '#ff6666', '#ff9999'][Math.floor(Math.random() * 3)];
+        heart.textContent = '💖';
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 2000);
+      }
+    }
+
     function placePiece(piece, gx, gy) {
       const shape = piece.shape;
       for (let y = 0; y < shape.length; y++) {
@@ -174,9 +198,11 @@
     }
 
     function checkAndClearLines() {
+      let cleared = false;
       for (let y = 0; y < gridSize; y++) {
         if (grid[y].every(cell => cell)) {
           grid[y] = Array(gridSize).fill(null);
+          cleared = true;
         }
       }
       for (let x = 0; x < gridSize; x++) {
@@ -186,7 +212,12 @@
         }
         if (colFull) {
           for (let y = 0; y < gridSize; y++) grid[y][x] = null;
+          cleared = true;
         }
+      }
+      if (cleared) {
+        const centerX = canvas.offsetLeft + canvas.width / 2;
+        createHeartBurst(centerX, window.innerHeight);
       }
     }
 
