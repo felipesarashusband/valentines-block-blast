@@ -78,126 +78,6 @@
     <h1>For Sara 💖</h1>
     <canvas id="gameCanvas" width="480" height="480"></canvas>
     <div class="pieces" id="pieces"></div>
-<script>
-let grid = Array.from({ length: 8 }, () => Array(8).fill(null));
-const shapes = [
-  [[1]], [[1, 1]], [[1], [1]],
-  [[1, 1], [1, 0]], [[1, 1], [0, 1]],
-  [[1, 1, 1]], [[1], [1], [1]]
-];
-
-function randomBlock() {
-  const options = [
-    { color: '#ff4d88', icon: '💗' },
-    { color: '#ff6666', icon: '❤️' },
-    { color: '#ff9999', icon: '🌹' },
-    { color: '#ff3366', icon: '💣', bomb: true }
-  ];
-  return options[Math.floor(Math.random() * options.length)];
-}
-
-function drawGrid() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  for (let y = 0; y < 8; y++) {
-    for (let x = 0; x < 8; x++) {
-      ctx.strokeStyle = '#ccc';
-      ctx.strokeRect(x * 60, y * 60, 60, 60);
-      const block = grid[y][x];
-      if (block) {
-        ctx.fillStyle = block.color;
-        ctx.fillRect(x * 60 + 2, y * 60 + 2, 56, 56);
-        ctx.fillStyle = '#fff';
-        ctx.font = '42px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(block.icon, x * 60 + 30, y * 60 + 30);
-      }
-    }
-  }
-}
-
-
-document.addEventListener('DOMContentLoaded', () => {
-  canvas = document.getElementById('gameCanvas');
-  ctx = canvas.getContext('2d');
-  window.canvas = canvas;
-  window.ctx = ctx;
-  drawGrid();
-  generatePieces();
-  updateScoreDisplay();
-});
-
-
-let canvas = null;
-let ctx = null;
-document.addEventListener('DOMContentLoaded', () => {
-  canvas = document.getElementById('gameCanvas');
-  ctx = canvas.getContext('2d');
-  drawGrid();
-  generatePieces();
-  updateScoreDisplay();
-});
-
-canvas.addEventListener('dragover', e => e.preventDefault());
-canvas.addEventListener('drop', e => {
-  e.preventDefault();
-  if (dragPieceIndex === null || dragPieceIndex >= currentPieces.length) return;
-  const piece = currentPieces[dragPieceIndex];
-  const rect = canvas.getBoundingClientRect();
-  const dropX = e.clientX - rect.left;
-  const dropY = e.clientY - rect.top;
-  const gx = Math.round(dropX / 60 - piece.shape[0].length / 2);
-  const gy = Math.round(dropY / 60 - piece.shape.length / 2);
-
-  if (placePiece(piece, gx, gy)) {
-    drawGrid();
-    checkAndClearLines();
-    showMessage();
-    currentPieces.splice(dragPieceIndex, 1);
-    document.getElementById('pieces').children[dragPieceIndex].remove();
-    dragPieceIndex = null;
-    if (currentPieces.length === 0) generatePieces();
-  }
-});
-let dragPieceIndex = null;
-let currentPieces = [];
-
-function generatePieces() {
-  const container = document.getElementById("pieces");
-  container.innerHTML = "";
-  currentPieces = [];
-
-  for (let i = 0; i < 3; i++) {
-    const shape = shapes[Math.floor(Math.random() * shapes.length)];
-    const block = randomBlock();
-    currentPieces.push({ shape, block });
-
-    const div = document.createElement("div");
-    div.className = "piece";
-    div.draggable = true;
-    div.dataset.index = i;
-    shape.forEach((row) => {
-      const rowDiv = document.createElement("div");
-      row.forEach((cell) => {
-        const cellDiv = document.createElement("div");
-        cellDiv.className = "cell";
-        cellDiv.textContent = cell ? block.icon : "";
-        cellDiv.style.backgroundColor = cell ? block.color : "transparent";
-        rowDiv.appendChild(cellDiv);
-      });
-      div.appendChild(rowDiv);
-    });
-    container.appendChild(div);
-  }
-
-  document.querySelectorAll(".piece").forEach((piece) => {
-    piece.addEventListener("dragstart", (e) => {
-      dragPieceIndex = parseInt(e.currentTarget.dataset.index);
-      e.dataTransfer.setData("text/plain", dragPieceIndex);
-    });
-  });
-}
-</script>
   </div>
   <div class="sidebar">
     <div class="score-box">
@@ -208,194 +88,226 @@ function generatePieces() {
     <button id="restartBtn" class="restart-btn">Restart 🔁</button>
     <div class="message" id="messageBox">You are so stunning, my love 💗</div>
   </div>
-<script>
-let score = 0;
-let level = 1;
-let goal = 100;
+  <script>
+    let canvas, ctx;
+    let grid = Array.from({ length: 8 }, () => Array(8).fill(null));
+    let dragPieceIndex = null;
+    let currentPieces = [];
+    let score = 0;
+    let level = 1;
+    let goal = 100;
 
-const scoreDisplay = document.getElementById("score");
-const levelDisplay = document.getElementById("level");
-const goalDisplay = document.getElementById("goal");
-const restartBtn = document.getElementById("restartBtn");
+    const scoreDisplay = document.getElementById("score");
+    const levelDisplay = document.getElementById("level");
+    const goalDisplay = document.getElementById("goal");
+    const restartBtn = document.getElementById("restartBtn");
 
-function updateScoreDisplay() {
-  scoreDisplay.textContent = score;
-  levelDisplay.textContent = level;
-  goalDisplay.textContent = goal;
-}
+    const shapes = [
+      [[1]], [[1, 1]], [[1], [1]],
+      [[1, 1], [1, 0]], [[1, 1], [0, 1]],
+      [[1, 1, 1]], [[1], [1], [1]]
+    ];
 
-function checkGameOver() {
-  let hasMove = false;
-  currentPieces.forEach(({ shape }) => {
-    for (let gy = 0; gy <= 8 - shape.length; gy++) {
-      for (let gx = 0; gx <= 8 - shape[0].length; gx++) {
-        let fits = true;
-        for (let y = 0; y < shape.length; y++) {
-          for (let x = 0; x < shape[0].length; x++) {
-            if (shape[y][x] && grid[gy + y][gx + x]) fits = false;
+    function updateScoreDisplay() {
+      scoreDisplay.textContent = score;
+      levelDisplay.textContent = level;
+      goalDisplay.textContent = goal;
+    }
+
+    function randomBlock() {
+      const options = [
+        { color: '#ff4d88', icon: '💗' },
+        { color: '#ff6666', icon: '❤️' },
+        { color: '#ff9999', icon: '🌹' },
+        { color: '#ff3366', icon: '💣', bomb: true }
+      ];
+      return options[Math.floor(Math.random() * options.length)];
+    }
+
+    function drawGrid() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
+          ctx.strokeStyle = '#ccc';
+          ctx.strokeRect(x * 60, y * 60, 60, 60);
+          const block = grid[y][x];
+          if (block) {
+            ctx.fillStyle = block.color;
+            ctx.fillRect(x * 60 + 2, y * 60 + 2, 56, 56);
+            ctx.fillStyle = '#fff';
+            ctx.font = '42px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(block.icon, x * 60 + 30, y * 60 + 30);
           }
         }
-        if (fits) hasMove = true;
       }
     }
-  });
-  if (!hasMove) restartBtn.style.display = "inline-block";
-}
 
-restartBtn.onclick = () => {
-  grid = Array.from({ length: 8 }, () => Array(8).fill(null));
-  drawGrid();
-  generatePieces();
-  showMessage();
-  score = 0;
-  level = 1;
-  goal = 100;
-  updateScoreDisplay();
-  restartBtn.style.display = "none";
-};
-function placePiece(piece, gx, gy) {
-  const shape = piece.shape;
-  let placedAny = false;
-  for (let y = 0; y < shape.length; y++) {
-    for (let x = 0; x < shape[y].length; x++) {
-      if (shape[y][x]) {
-        const px = gx + x;
-        const py = gy + y;
-        if (px < 0 || px >= 8 || py < 0 || py >= 8 || grid[py][px]) {
-          return false;
+    function generatePieces() {
+      const container = document.getElementById("pieces");
+      container.innerHTML = "";
+      currentPieces = [];
+
+      for (let i = 0; i < 3; i++) {
+        const shape = shapes[Math.floor(Math.random() * shapes.length)];
+        const block = randomBlock();
+        currentPieces.push({ shape, block });
+
+        const div = document.createElement("div");
+        div.className = "piece";
+        div.draggable = true;
+        div.dataset.index = i;
+        shape.forEach((row) => {
+          const rowDiv = document.createElement("div");
+          row.forEach((cell) => {
+            const cellDiv = document.createElement("div");
+            cellDiv.className = "cell";
+            cellDiv.textContent = cell ? block.icon : "";
+            cellDiv.style.backgroundColor = cell ? block.color : "transparent";
+            rowDiv.appendChild(cellDiv);
+          });
+          div.appendChild(rowDiv);
+        });
+        container.appendChild(div);
+      }
+
+      document.querySelectorAll(".piece").forEach((piece) => {
+        piece.addEventListener("dragstart", (e) => {
+          dragPieceIndex = parseInt(e.currentTarget.dataset.index);
+          e.dataTransfer.setData("text/plain", dragPieceIndex);
+        });
+      });
+    }
+
+    function placePiece(piece, gx, gy) {
+      const shape = piece.shape;
+      for (let y = 0; y < shape.length; y++) {
+        for (let x = 0; x < shape[y].length; x++) {
+          if (shape[y][x]) {
+            const px = gx + x;
+            const py = gy + y;
+            if (px < 0 || px >= 8 || py < 0 || py >= 8 || grid[py][px]) {
+              return false;
+            }
+          }
         }
       }
-    }
-  }
-  for (let y = 0; y < shape.length; y++) {
-    for (let x = 0; x < shape[y].length; x++) {
-      if (shape[y][x]) {
-        const px = gx + x;
-        const py = gy + y;
-        grid[py][px] = { ...piece.block };
-        placedAny = true;
-
-        const highlight = document.createElement('div');
-        highlight.className = 'cell placed';
-        highlight.style.position = 'absolute';
-        highlight.style.left = `${canvas.offsetLeft + px * 60}px`;
-        highlight.style.top = `${canvas.offsetTop + py * 60}px`;
-        highlight.style.width = `60px`;
-        highlight.style.height = `60px`;
-        highlight.style.backgroundColor = piece.block.color;
-        highlight.style.color = 'white';
-        highlight.style.lineHeight = `60px`;
-        highlight.textContent = piece.block.icon;
-        highlight.style.fontSize = '42px';
-        highlight.style.zIndex = 100;
-        highlight.style.animation = 'popIn 0.3s ease-out';
-        document.body.appendChild(highlight);
-        setTimeout(() => highlight.remove(), 300);
+      for (let y = 0; y < shape.length; y++) {
+        for (let x = 0; x < shape[y].length; x++) {
+          if (shape[y][x]) {
+            const px = gx + x;
+            const py = gy + y;
+            grid[py][px] = { ...piece.block };
+          }
+        }
       }
+      return true;
     }
-  }
-  return placedAny;
-}
 
-function checkAndClearLines() {
-  let clearedBlocks = 0;
-
-  for (let y = 0; y < 8; y++) {
-    if (grid[y].every(cell => cell)) {
-      grid[y] = Array(8).fill(null);
-      clearedBlocks += 8;
+    function checkGameOver() {
+      let hasMove = false;
+      currentPieces.forEach(({ shape }) => {
+        for (let gy = 0; gy <= 8 - shape.length; gy++) {
+          for (let gx = 0; gx <= 8 - shape[0].length; gx++) {
+            let fits = true;
+            for (let y = 0; y < shape.length; y++) {
+              for (let x = 0; x < shape[0].length; x++) {
+                if (shape[y][x] && grid[gy + y][gx + x]) fits = false;
+              }
+            }
+            if (fits) hasMove = true;
+          }
+        }
+      });
+      if (!hasMove) restartBtn.style.display = "inline-block";
     }
-  }
 
-  for (let x = 0; x < 8; x++) {
-    let colFull = true;
-    for (let y = 0; y < 8; y++) {
-      if (!grid[y][x]) colFull = false;
+    function showMessage() {
+      const messages = [
+        "I love you so much, baby 💗",
+        "You make me smile every day 😊",
+        "You are so stunning, my love 😍",
+        "Sara, you're my everything ❤️"
+      ];
+      document.getElementById("messageBox").textContent = messages[Math.floor(Math.random() * messages.length)];
     }
-    if (colFull) {
-      for (let y = 0; y < 8; y++) grid[y][x] = null;
-      clearedBlocks += 8;
-    }
-  }
 
-  if (clearedBlocks > 0) {
-    const centerX = canvas.offsetLeft + canvas.width / 2;
-    createHeartBurst(centerX, window.innerHeight);
-    score += clearedBlocks;
-    updateScoreDisplay();
-    if (score >= goal) {
-      level += 1;
-      goal = 100 + level * 50;
+    function checkAndClearLines() {
+      let clearedBlocks = 0;
+
+      for (let y = 0; y < 8; y++) {
+        if (grid[y].every(cell => cell)) {
+          grid[y] = Array(8).fill(null);
+          clearedBlocks += 8;
+        }
+      }
+
+      for (let x = 0; x < 8; x++) {
+        let colFull = true;
+        for (let y = 0; y < 8; y++) {
+          if (!grid[y][x]) colFull = false;
+        }
+        if (colFull) {
+          for (let y = 0; y < 8; y++) grid[y][x] = null;
+          clearedBlocks += 8;
+        }
+      }
+
+      if (clearedBlocks > 0) {
+        score += clearedBlocks;
+        updateScoreDisplay();
+        if (score >= goal) {
+          level++;
+          goal = 100 + level * 50;
+          updateScoreDisplay();
+        }
+      }
+      checkGameOver();
+    }
+
+    restartBtn.onclick = () => {
+      grid = Array.from({ length: 8 }, () => Array(8).fill(null));
+      score = 0;
+      level = 1;
+      goal = 100;
+      restartBtn.style.display = "none";
+      drawGrid();
+      generatePieces();
+      showMessage();
       updateScoreDisplay();
-    }
-  }
+    };
 
-  checkGameOver();
-}
-function showConfetti() {
-  for (let i = 0; i < 40; i++) {
-    const heart = document.createElement('div');
-    heart.textContent = '💖';
-    heart.style.position = 'fixed';
-    heart.style.left = `${Math.random() * 100}%`;
-    heart.style.top = '100%';
-    heart.style.fontSize = `${Math.random() * 20 + 20}px`;
-    heart.style.animation = `floatConfetti ${Math.random() * 2 + 2}s ease-out forwards`;
-    document.body.appendChild(heart);
-    setTimeout(() => heart.remove(), 4000);
-  }
-}
+    document.addEventListener('DOMContentLoaded', () => {
+      canvas = document.getElementById('gameCanvas');
+      ctx = canvas.getContext('2d');
 
-const confettiStyle = document.createElement('style');
-confettiStyle.textContent = `
-@keyframes floatConfetti {
-  0% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-100vh);
-    opacity: 0;
-  }
-}`;
-document.head.appendChild(confettiStyle);
+      canvas.addEventListener('dragover', e => e.preventDefault());
+      canvas.addEventListener('drop', e => {
+        e.preventDefault();
+        if (dragPieceIndex === null || dragPieceIndex >= currentPieces.length) return;
+        const piece = currentPieces[dragPieceIndex];
+        const rect = canvas.getBoundingClientRect();
+        const dropX = e.clientX - rect.left;
+        const dropY = e.clientY - rect.top;
+        const gx = Math.round(dropX / 60 - piece.shape[0].length / 2);
+        const gy = Math.round(dropY / 60 - piece.shape.length / 2);
 
-function checkAndClearLines() {
-  let clearedBlocks = 0;
+        if (placePiece(piece, gx, gy)) {
+          drawGrid();
+          checkAndClearLines();
+          showMessage();
+          currentPieces.splice(dragPieceIndex, 1);
+          document.getElementById('pieces').children[dragPieceIndex].remove();
+          dragPieceIndex = null;
+          if (currentPieces.length === 0) generatePieces();
+        }
+      });
 
-  for (let y = 0; y < 8; y++) {
-    if (grid[y].every(cell => cell)) {
-      grid[y] = Array(8).fill(null);
-      clearedBlocks += 8;
-    }
-  }
-
-  for (let x = 0; x < 8; x++) {
-    let colFull = true;
-    for (let y = 0; y < 8; y++) {
-      if (!grid[y][x]) colFull = false;
-    }
-    if (colFull) {
-      for (let y = 0; y < 8; y++) grid[y][x] = null;
-      clearedBlocks += 8;
-    }
-  }
-
-  if (clearedBlocks > 0) {
-    const centerX = canvas.offsetLeft + canvas.width / 2;
-    createHeartBurst(centerX, window.innerHeight);
-    score += clearedBlocks;
-    updateScoreDisplay();
-    if (score >= goal) {
-      level += 1;
-      goal = 100 + level * 50;
+      drawGrid();
+      generatePieces();
       updateScoreDisplay();
-      showConfetti();
-    }
-  }
-
-  checkGameOver();
-}
-</script>
+    });
+  </script>
 </body>
 </html>
