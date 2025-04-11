@@ -117,10 +117,11 @@ function drawGrid() {
 }
 
 
-let canvas, ctx;
 document.addEventListener('DOMContentLoaded', () => {
-  canvas = document.getElementById('gameCanvas');
-  ctx = canvas.getContext('2d');
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  window.canvas = canvas;
+  window.ctx = ctx;
   drawGrid();
   generatePieces();
   updateScoreDisplay();
