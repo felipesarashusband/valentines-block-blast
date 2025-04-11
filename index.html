@@ -133,6 +133,50 @@ restartBtn.onclick = () => {
   updateScoreDisplay();
   restartBtn.style.display = "none";
 };
+function placePiece(piece, gx, gy) {
+  const shape = piece.shape;
+  let placedAny = false;
+  for (let y = 0; y < shape.length; y++) {
+    for (let x = 0; x < shape[y].length; x++) {
+      if (shape[y][x]) {
+        const px = gx + x;
+        const py = gy + y;
+        if (px < 0 || px >= 8 || py < 0 || py >= 8 || grid[py][px]) {
+          return false;
+        }
+      }
+    }
+  }
+  for (let y = 0; y < shape.length; y++) {
+    for (let x = 0; x < shape[y].length; x++) {
+      if (shape[y][x]) {
+        const px = gx + x;
+        const py = gy + y;
+        grid[py][px] = { ...piece.block };
+        placedAny = true;
+
+        const highlight = document.createElement('div');
+        highlight.className = 'cell placed';
+        highlight.style.position = 'absolute';
+        highlight.style.left = `${canvas.offsetLeft + px * 60}px`;
+        highlight.style.top = `${canvas.offsetTop + py * 60}px`;
+        highlight.style.width = `60px`;
+        highlight.style.height = `60px`;
+        highlight.style.backgroundColor = piece.block.color;
+        highlight.style.color = 'white';
+        highlight.style.lineHeight = `60px`;
+        highlight.textContent = piece.block.icon;
+        highlight.style.fontSize = '42px';
+        highlight.style.zIndex = 100;
+        highlight.style.animation = 'popIn 0.3s ease-out';
+        document.body.appendChild(highlight);
+        setTimeout(() => highlight.remove(), 300);
+      }
+    }
+  }
+  return placedAny;
+}
+
 function checkAndClearLines() {
   let clearedBlocks = 0;
 
