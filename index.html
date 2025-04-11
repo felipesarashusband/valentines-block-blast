@@ -99,10 +99,22 @@
     let goal = 100;
 
     const shapes = [
-      [[1]], [[1, 1]], [[1], [1]],
-      [[1, 1], [1, 0]], [[1, 1], [0, 1]],
-      [[1, 1, 1]], [[1], [1], [1]]
-    ];
+  [[1]],
+  [[1, 1]],
+  [[1], [1]],
+  [[1, 1], [1, 0]],
+  [[1, 1], [0, 1]],
+  [[1, 1, 1]],
+  [[1], [1], [1]],
+  [[1, 1, 1, 1]],
+  [[1], [1], [1], [1]],
+  [[1, 1, 1], [0, 1, 0]],
+  [[1, 0], [1, 0], [1, 1]],
+  [[0, 1], [0, 1], [1, 1]],
+  [[1, 1], [1, 1]],
+  [[1, 1, 0], [0, 1, 1]],
+  [[0, 1, 1], [1, 1, 0]]
+];
 
     function updateScoreDisplay() {
       document.getElementById("score").textContent = score;
@@ -175,8 +187,10 @@
 
       document.querySelectorAll(".piece").forEach((piece) => {
         piece.addEventListener("dragstart", (e) => {
-          dragPieceId = e.currentTarget.dataset.id;
-        });
+  dragPieceId = e.currentTarget.dataset.id;
+  // Prevent dragging image ghost of entire piece set
+  e.dataTransfer.setDragImage(e.currentTarget, 30, 30);
+});
       });
     }
 
@@ -263,4 +277,3 @@ document.addEventListener('DOMContentLoaded', () => {
   </script>
 </body>
 </html>
-
