@@ -118,6 +118,16 @@ function drawGrid() {
 
 
 let canvas, ctx;
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  drawGrid();
+  generatePieces();
+  updateScoreDisplay();
+});
+
+
+let canvas, ctx;
 document.addEventListener('DOMContentLoaded', () => {
   canvas = document.getElementById('gameCanvas');
   ctx = canvas.getContext('2d');
@@ -125,16 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
   generatePieces();
   updateScoreDisplay();
 });
-
-document.addEventListener('DOMContentLoaded', () => {
-  drawGrid();
-  generatePieces();
-  updateScoreDisplay();
-});
-
-
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
 
 canvas.addEventListener('dragover', e => e.preventDefault());
 canvas.addEventListener('drop', e => {
