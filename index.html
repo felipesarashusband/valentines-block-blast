@@ -140,6 +140,12 @@
         });
         container.appendChild(div);
       }
+
+      document.querySelectorAll('.piece').forEach(piece => {
+        piece.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('text/plain', e.currentTarget.dataset.index);
+        });
+      });
     }
 
     function placePiece(piece, gx, gy) {
@@ -192,7 +198,8 @@
     canvas.addEventListener('dragover', e => e.preventDefault());
     canvas.addEventListener('drop', e => {
       e.preventDefault();
-      const index = e.dataTransfer.getData('text');
+      const index = e.dataTransfer.getData('text/plain');
+      if (index === '') return;
       const piece = currentPieces[index];
       const rect = canvas.getBoundingClientRect();
       const gx = Math.floor((e.clientX - rect.left) / cellSize);
@@ -207,13 +214,6 @@
         if (currentPieces.length === 0) generatePieces();
       }
     });
-
-generatePieces();
-document.querySelectorAll('.piece').forEach(piece => {
-  piece.addEventListener('dragstart', e => {
-    e.dataTransfer.setData('text', e.currentTarget.dataset.index);
-  });
-});
 
     drawGrid();
     generatePieces();
