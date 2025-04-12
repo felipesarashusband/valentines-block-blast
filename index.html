@@ -153,14 +153,23 @@ $1
         div.draggable = true;
         div.dataset.id = id;
         shape.forEach((row) => {
-          const rowDiv = document.createElement("div");
-          row.forEach((cell) => {
-            const cellDiv = document.createElement("div");
-            cellDiv.className = "cell";
-            cellDiv.textContent = cell ? block.icon : "";
-            cellDiv.style.backgroundColor = cell ? block.color : "transparent";
-            rowDiv.appendChild(cellDiv);
-          });
+  const rowDiv = document.createElement("div");
+  rowDiv.style.display = 'flex';
+  row.forEach((cell) => {
+    const cellDiv = document.createElement("div");
+    cellDiv.className = "cell";
+    cellDiv.style.width = '60px';
+    cellDiv.style.height = '60px';
+    cellDiv.style.display = 'flex';
+    cellDiv.style.alignItems = 'center';
+    cellDiv.style.justifyContent = 'center';
+    cellDiv.style.fontSize = '42px';
+    cellDiv.style.backgroundColor = cell ? block.color : "transparent";
+    cellDiv.textContent = cell ? block.icon : "";
+    rowDiv.appendChild(cellDiv);
+  });
+  div.appendChild(rowDiv);
+});
           div.appendChild(rowDiv);
         });
         container.appendChild(div);
