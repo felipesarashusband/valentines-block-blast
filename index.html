@@ -211,7 +211,8 @@
       let cleared = false;
       for (let y = 0; y < 8; y++) {
         if (grid[y].every(cell => cell)) {
-          animateClearRow(y);
+      cleared = true;
+      animateClearRow(y);
           setTimeout(() => {
             grid[y] = Array(8).fill(null);
             drawGrid();
@@ -222,7 +223,8 @@
       }
       for (let x = 0; x < 8; x++) {
         if (grid.every(row => row[x])) {
-          animateClearCol(x);
+      cleared = true;
+      animateClearCol(x);
           setTimeout(() => {
             for (let y = 0; y < 8; y++) grid[y][x] = null;
             drawGrid();
@@ -309,10 +311,12 @@ document.addEventListener('DOMContentLoaded', () => {
     drawGrid();
     const success = placePiece(piece, gx, gy);
     if (success) {
+      dragPieceId = null;
       checkAndClearLines();
       drawGrid();
       currentPieces = currentPieces.filter(p => p.id !== id);
       const el = document.querySelector(`.piece[data-id='${id}']`);
+      if (el) el.remove();
       if (el) el.remove();
       dragPieceId = null;
       if (currentPieces.length === 0) generatePieces();
