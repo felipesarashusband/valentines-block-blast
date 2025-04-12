@@ -210,19 +210,49 @@
       let cleared = false;
       for (let y = 0; y < 8; y++) {
         if (grid[y].every(cell => cell)) {
-          grid[y] = Array(8).fill(null);
+          animateClearRow(y);
+          setTimeout(() => {
+            grid[y] = Array(8).fill(null);
+            drawGrid();
+          }, 200);
+
           cleared = true;
         }
       }
       for (let x = 0; x < 8; x++) {
         if (grid.every(row => row[x])) {
-          for (let y = 0; y < 8; y++) grid[y][x] = null;
+          animateClearCol(x);
+          setTimeout(() => {
+            for (let y = 0; y < 8; y++) grid[y][x] = null;
+            drawGrid();
+          }, 200);
+
           cleared = true;
         }
       }
       if (cleared) {
         score += 10;
         updateScoreDisplay();
+
+function animateClearRow(row) {
+  for (let x = 0; x < 8; x++) {
+    if (grid[row][x]) {
+      ctx.clearRect(x * 60, row * 60, 60, 60);
+      ctx.fillStyle = '#ffe6f0';
+      ctx.fillRect(x * 60, row * 60, 60, 60);
+    }
+  }
+}
+
+function animateClearCol(col) {
+  for (let y = 0; y < 8; y++) {
+    if (grid[y][col]) {
+      ctx.clearRect(col * 60, y * 60, 60, 60);
+      ctx.fillStyle = '#ffe6f0';
+      ctx.fillRect(col * 60, y * 60, 60, 60);
+    }
+  }
+}
       }
     }
 
