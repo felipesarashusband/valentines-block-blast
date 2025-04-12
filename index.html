@@ -272,8 +272,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const rect = canvas.getBoundingClientRect();
     const dropX = e.clientX - rect.left;
     const dropY = e.clientY - rect.top;
-    const gx = Math.floor(dropX / 60);
-    const gy = Math.floor(dropY / 60);
+    const gx = Math.floor((dropX - piece.shape[0].length * 30) / 60);
+    const gy = Math.floor((dropY - piece.shape.length * 30) / 60);
 
     if (placePiece(piece, gx, gy)) {
       checkAndClearLines();
@@ -289,7 +289,14 @@ document.addEventListener('DOMContentLoaded', () => {
   drawGrid();
   generatePieces();
   updateScoreDisplay();
-});
+
+        if (score >= goal) {
+          level++;
+          goal = 100 + level * 50;
+          document.getElementById("messageBox").textContent = `Level up! You're amazing, Sara 💕 Now on level ${level}!`;
+          updateScoreDisplay();
+        }
+      });
   </script>
 </body>
 </html>
