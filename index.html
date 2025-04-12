@@ -176,7 +176,7 @@
       document.querySelectorAll(".piece").forEach((piece) => {
         piece.addEventListener("dragstart", (e) => {
           dragPieceId = e.currentTarget.dataset.id;
-          e.dataTransfer.setDragImage(e.currentTarget, 30, 30);
+          // Removed setDragImage to prevent rendering errors
         });
       });
     }
