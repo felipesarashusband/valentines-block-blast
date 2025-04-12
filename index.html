@@ -242,8 +242,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const rect = canvas.getBoundingClientRect();
     const dropX = e.clientX - rect.left;
     const dropY = e.clientY - rect.top;
-    const gx = Math.round(dropX / 60 - piece.shape[0].length / 2);
-    const gy = Math.round(dropY / 60 - piece.shape.length / 2);
+    const gx = Math.floor(dropX / 60);
+    const gy = Math.floor(dropY / 60);
 
     if (placePiece(piece, gx, gy)) {
       checkAndClearLines();
