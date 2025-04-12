@@ -332,12 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
   generatePieces();
   updateScoreDisplay();
 
-        if (score >= goal) {
-    level++;
-    goal = 100 + level * 50;
-    document.getElementById("messageBox").textContent = `Level up! You're amazing, Sara 💕 Now on level ${level}!`;
-    updateScoreDisplay();
-  }
+        
       });
   </script>
 </body>
