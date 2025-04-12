@@ -226,38 +226,40 @@
       }
     }
 
-    canvas = document.getElementById('gameCanvas');
-ctx = canvas.getContext('2d');
+document.addEventListener('DOMContentLoaded', () => {
+  canvas = document.getElementById('gameCanvas');
+  ctx = canvas.getContext('2d');
 
-canvas.addEventListener('dragover', (e) => e.preventDefault());
+  canvas.addEventListener('dragover', (e) => e.preventDefault());
 
-canvas.addEventListener('drop', (e) => {
-  e.preventDefault();
-  const id = dragPieceId;
-  if (!id) return;
-  const piece = currentPieces.find(p => p.id === id);
-  if (!piece) return;
+  canvas.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const id = dragPieceId;
+    if (!id) return;
+    const piece = currentPieces.find(p => p.id === id);
+    if (!piece) return;
 
-  const rect = canvas.getBoundingClientRect();
-  const dropX = e.clientX - rect.left;
-  const dropY = e.clientY - rect.top;
-  const gx = Math.round(dropX / 60 - piece.shape[0].length / 2);
-  const gy = Math.round(dropY / 60 - piece.shape.length / 2);
+    const rect = canvas.getBoundingClientRect();
+    const dropX = e.clientX - rect.left;
+    const dropY = e.clientY - rect.top;
+    const gx = Math.round(dropX / 60 - piece.shape[0].length / 2);
+    const gy = Math.round(dropY / 60 - piece.shape.length / 2);
 
-  if (placePiece(piece, gx, gy)) {
-    checkAndClearLines();
-    drawGrid();
-    currentPieces = currentPieces.filter(p => p.id !== id);
-    const el = document.querySelector(`.piece[data-id='${id}']`);
-    if (el) el.remove();
-    dragPieceId = null;
-    if (currentPieces.length === 0) generatePieces();
-  }
+    if (placePiece(piece, gx, gy)) {
+      checkAndClearLines();
+      drawGrid();
+      currentPieces = currentPieces.filter(p => p.id !== id);
+      const el = document.querySelector(`.piece[data-id='${id}']`);
+      if (el) el.remove();
+      dragPieceId = null;
+      if (currentPieces.length === 0) generatePieces();
+    }
+  });
+
+  drawGrid();
+  generatePieces();
+  updateScoreDisplay();
 });
-
-drawGrid();
-generatePieces();
-updateScoreDisplay();
   </script>
 </body>
 </html>
