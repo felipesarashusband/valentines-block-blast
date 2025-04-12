@@ -150,7 +150,7 @@
       currentPieces = [];
 
       for (let i = 0; i < 3; i++) {
-        const shape = JSON.parse(JSON.stringify(shapes[Math.floor(Math.random() * shapes.length)]));
+        const shape = structuredClone(shapes[Math.floor(Math.random() * shapes.length)]);
         const block = randomBlock();
         const id = Math.random().toString(36).slice(2, 11);
         currentPieces.push({ id, shape, block });
@@ -165,12 +165,6 @@
   row.forEach((cell) => {
     const cellDiv = document.createElement("div");
     cellDiv.className = "cell";
-    cellDiv.style.width = '60px';
-    cellDiv.style.height = '60px';
-    cellDiv.style.display = 'flex';
-    cellDiv.style.alignItems = 'center';
-    cellDiv.style.justifyContent = 'center';
-    cellDiv.style.fontSize = '42px';
     cellDiv.style.backgroundColor = cell ? block.color : "transparent";
     cellDiv.textContent = cell ? block.icon : "";
     rowDiv.appendChild(cellDiv);
