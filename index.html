@@ -37,10 +37,17 @@
       display: inline-block;
     }
     .cell {
-$1
-  opacity: 1 !important;
-  transform: none !important;
-  scale: 1 !important;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+  background-color: transparent;
+  color: white;
+  opacity: 1;
+  transform: none;
+  scale: 1;
 }
     .sidebar {
       width: 200px;
@@ -143,7 +150,7 @@ $1
       currentPieces = [];
 
       for (let i = 0; i < 3; i++) {
-        const shape = shapes[Math.floor(Math.random() * shapes.length)];
+        const shape = JSON.parse(JSON.stringify(shapes[Math.floor(Math.random() * shapes.length)]));
         const block = randomBlock();
         const id = Math.random().toString(36).slice(2, 11);
         currentPieces.push({ id, shape, block });
