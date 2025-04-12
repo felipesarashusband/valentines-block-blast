@@ -208,32 +208,31 @@
     }
 
     function checkAndClearLines() {
-      let cleared = false;
-      for (let y = 0; y < 8; y++) {
-        if (grid[y].every(cell => cell)) {
-      cleared = true;
-      animateClearRow(y);
-          setTimeout(() => {
-            grid[y] = Array(8).fill(null);
-            drawGrid();
-          }, 200);
+  let cleared = false;
+  let clearedRows = [];
+  let clearedCols = [];
 
-          cleared = true;
-        }
-      }
-      for (let x = 0; x < 8; x++) {
-        if (grid.every(row => row[x])) {
-      cleared = true;
-      animateClearCol(x);
-          setTimeout(() => {
-            for (let y = 0; y < 8; y++) grid[y][x] = null;
-            drawGrid();
-          }, 200);
+  for (let y = 0; y < 8; y++) {
+    if (grid[y].every(cell => cell)) clearedRows.push(y);
+  }
 
-          cleared = true;
-        }
-      }
-      if (cleared) {
+  for (let x = 0; x < 8; x++) {
+    if (grid.every(row => row[x])) clearedCols.push(x);
+  }
+
+  if (clearedRows.length || clearedCols.length) {
+    cleared = true;
+    clearedRows.forEach(row => animateClearRow(row));
+    clearedCols.forEach(col => animateClearCol(col));
+
+    setTimeout(() => {
+      clearedRows.forEach(row => grid[row] = Array(8).fill(null));
+      clearedCols.forEach(col => {
+        for (let y = 0; y < 8; y++) grid[y][col] = null;
+      });
+      drawGrid();
+    }, 200);
+  }
         score += 10;
         updateScoreDisplay();
 
@@ -319,8 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
       drawGrid();
       
       
-      dragPieceId = null;
       if (currentPieces.length === 0) generatePieces();
+    else dragPieceId = null;
     }
   });
 
