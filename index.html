@@ -150,7 +150,7 @@
       currentPieces = [];
 
       for (let i = 0; i < 3; i++) {
-        const shape = structuredClone(shapes[Math.floor(Math.random() * shapes.length)]);
+        const shape = JSON.parse(JSON.stringify(shapes[Math.floor(Math.random() * shapes.length)]));
         const block = randomBlock();
         const id = Math.random().toString(36).slice(2, 11);
         currentPieces.push({ id, shape, block });
@@ -170,9 +170,7 @@
     rowDiv.appendChild(cellDiv);
   });
   div.appendChild(rowDiv);
-});
-          div.appendChild(rowDiv);
-        });
+      });
         container.appendChild(div);
       }
 
@@ -309,7 +307,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Snap and validate once on drop
     drawGrid();
-    if (placePiece(piece, gx, gy)) {
+    const success = placePiece(piece, gx, gy);
+    if (success) {
       checkAndClearLines();
       drawGrid();
       currentPieces = currentPieces.filter(p => p.id !== id);
@@ -325,11 +324,11 @@ document.addEventListener('DOMContentLoaded', () => {
   updateScoreDisplay();
 
         if (score >= goal) {
-          level++;
-          goal = 100 + level * 50;
-          document.getElementById("messageBox").textContent = `Level up! You're amazing, Sara 💕 Now on level ${level}!`;
-          updateScoreDisplay();
-        }
+    level++;
+    goal = 100 + level * 50;
+    document.getElementById("messageBox").textContent = `Level up! You're amazing, Sara 💕 Now on level ${level}!`;
+    updateScoreDisplay();
+  }
       });
   </script>
 </body>
