@@ -306,7 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const gx = Math.floor((dropX - (piece.shape[0].length * 60) / 2) / 60);
     const gy = Math.floor((dropY - (piece.shape.length * 60) / 2) / 60);
 
-    // Snap and validate once on drop
     drawGrid();
     const success = placePiece(piece, gx, gy);
     if (success) {
@@ -322,8 +321,8 @@ document.addEventListener('DOMContentLoaded', () => {
           generatePieces();
         }, 200);
       }
-    }
-    else dragPieceId = null;
+    } else {
+      dragPieceId = null;
     }
   });
 
