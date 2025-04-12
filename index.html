@@ -267,18 +267,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const gy = Math.floor((dropY - (piece.shape.length * 60) / 2) / 60);
 
     drawGrid();
+    ctx.save();
     ctx.strokeStyle = '#d63384';
     ctx.lineWidth = 3;
     for (let y = 0; y < piece.shape.length; y++) {
       for (let x = 0; x < piece.shape[y].length; x++) {
         if (piece.shape[y][x]) {
+          ctx.strokeStyle = '#d63384';
           const px = gx + x;
           const py = gy + y;
           if (px >= 0 && px < 8 && py >= 0 && py < 8) {
-            ctx.strokeRect(px * 60 + 4, py * 60 + 4, 52, 52);
-          }
+            ctx.strokeRect(px * 60 + 6, py * 60 + 6, 48, 48);
         }
       }
+    }
+    ctx.restore();
     }
   });
 
