@@ -311,13 +311,15 @@ document.addEventListener('DOMContentLoaded', () => {
     drawGrid();
     const success = placePiece(piece, gx, gy);
     if (success) {
+      const el = document.querySelector(`.piece[data-id='${id}']`);
+      if (el) el.remove();
+      currentPieces = currentPieces.filter(p => p.id !== id);
       dragPieceId = null;
       checkAndClearLines();
       drawGrid();
       currentPieces = currentPieces.filter(p => p.id !== id);
       const el = document.querySelector(`.piece[data-id='${id}']`);
-      if (el) el.remove();
-      if (el) el.remove();
+      
       dragPieceId = null;
       if (currentPieces.length === 0) generatePieces();
     }
