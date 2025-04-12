@@ -37,18 +37,11 @@
       display: inline-block;
     }
     .cell {
-      width: 60px;
-      height: 60px;
-      background-color: #ff4d88;
-      margin: 1px;
-      display: inline-block;
-      border-radius: 4px;
-      text-align: center;
-      line-height: 60px;
-      font-size: 48px;
-      color: white;
-      transition: transform 0.2s ease;
-    }
+$1
+  opacity: 1 !important;
+  transform: none !important;
+  scale: 1 !important;
+}
     .sidebar {
       width: 200px;
       display: flex;
@@ -272,8 +265,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const rect = canvas.getBoundingClientRect();
     const dropX = e.clientX - rect.left;
     const dropY = e.clientY - rect.top;
-    const gx = Math.floor((dropX - piece.shape[0].length * 30) / 60);
-    const gy = Math.floor((dropY - piece.shape.length * 30) / 60);
+    const gx = Math.floor((dropX - (piece.shape[0].length * 60) / 2) / 60);
+    const gy = Math.floor((dropY - (piece.shape.length * 60) / 2) / 60);
 
     if (placePiece(piece, gx, gy)) {
       checkAndClearLines();
