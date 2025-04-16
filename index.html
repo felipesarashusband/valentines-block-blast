@@ -3,335 +3,162 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Valentine's Block Blast - For Sara</title>
+  <title>Love Quest – For Sara 💖</title>
   <style>
     body {
       margin: 0;
-      padding: 20px;
-      font-family: 'Arial', sans-serif;
-      background: #ffe6f0;
-      color: #d63384;
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      align-items: flex-start;
-      gap: 20px;
-    }
-    .game-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      overflow: hidden;
+      background: linear-gradient(#fdd, #9cf);
     }
     canvas {
-      background-color: #fff0f5;
-      border: 4px solid #d63384;
+      display: block;
+      margin: auto;
+      background: url('https://i.imgur.com/zco5z2u.jpg') no-repeat center center;
+      background-size: cover;
     }
-    .pieces {
-      display: flex;
-      justify-content: center;
-      margin-top: 10px;
-    }
-    .piece {
-      margin: 0 10px;
-      cursor: grab;
-      display: inline-block;
-    }
-    .cell {
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 42px;
-  background-color: transparent;
-  color: white;
-  opacity: 1;
-  transform: none;
-  scale: 1;
-}
-    .sidebar {
-      width: 200px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-    .score-box {
-      padding: 10px;
-      border: 2px solid #d63384;
-      background: #fff0f5;
-      border-radius: 10px;
-    }
-    .restart-btn {
-      display: none;
+      #restartBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
       padding: 10px 20px;
-      font-size: 1.1rem;
-      border: none;
-      background-color: #ff4d88;
-      color: white;
+      font-size: 16px;
+      background-color: #fff;
+      border: 2px solid #d33;
       border-radius: 10px;
       cursor: pointer;
+      z-index: 10;
     }
   </style>
 </head>
 <body>
-  <div class="game-container">
-    <h1>For Sara 💖</h1>
-    <canvas id="gameCanvas" width="480" height="480"></canvas>
-    <div class="pieces" id="pieces"></div>
-  </div>
-  <div class="sidebar">
-    <div class="score-box">
-      <div>Score: <span id="score">0</span></div>
-      <div>Level: <span id="level">1</span></div>
-      <div>Goal: <span id="goal">100</span></div>
-    </div>
-    <button id="restartBtn" class="restart-btn">Restart 🔁</button>
-    <div class="message" id="messageBox">You are so stunning, my love 💗</div>
-  </div>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <button id="restartBtn">Restart 🔁</button>
   <script>
-    let canvas, ctx;
-    let grid = Array.from({ length: 8 }, () => Array(8).fill(null));
-    let dragPieceId = null;
-    let currentPieces = [];
-    let score = 0;
-    let level = 1;
-    let goal = 100;
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-    const shapes = [
-      [[1]], [[1,1]], [[1],[1]],
-      [[1,1],[1,0]], [[1,1],[0,1]],
-      [[1,1,1]], [[1],[1],[1]],
-      [[1,1,1,1]], [[1],[1],[1],[1]],
-      [[1,1,1],[0,1,0]],
-      [[1,0],[1,0],[1,1]], [[0,1],[0,1],[1,1]],
-      [[1,1],[1,1]],
-      [[1,1,0],[0,1,1]], [[0,1,1],[1,1,0]]
+    const sara = {
+      x: 50,
+      y: 300,
+      width: 30,
+      height: 60,
+      vy: 0,
+      gravity: 0.6,
+      jump: -12,
+      grounded: true,
+    };
+
+    let score = 0;
+    const messages = [
+      "I love you so much, baby 💖",
+      "You make me smile every day 💘",
+      "You are so stunning, my love 💋",
+      "You’re my whole world 💍",
+      "My forever valentine 🌹",
+      "You're sweeter than chocolate 🍫",
+      "You’re my favorite hello 🧸",
     ];
 
-    function updateScoreDisplay() {
-      document.getElementById("score").textContent = score;
-      document.getElementById("level").textContent = level;
-      document.getElementById("goal").textContent = goal;
+    const items = ["💌", "🌹", "💋", "🧸", "💍", "🍓", "🍫"];
+
+    let collectibles = [];
+    let frameCount = 0;
+    let lastMessage = "";
+
+    function spawnItem() {
+      const emoji = items[Math.floor(Math.random() * items.length)];
+      collectibles.push({
+        x: canvas.width,
+        y: 320,
+        icon: emoji,
+        collected: false,
+      });
     }
 
-    function randomBlock() {
-      const options = [
-        { color: '#ff4d88', icon: '💗' },
-        { color: '#ff6666', icon: '❤️' },
-        { color: '#ff9999', icon: '🌹' },
-        { color: '#ff3366', icon: '💣' }
-      ];
-      return options[Math.floor(Math.random() * options.length)];
+    function drawSara() {
+      ctx.fillStyle = "#000";
+      ctx.save();
+      const bounce = sara.vy < 0 ? -5 : 0;
+      ctx.translate(0, bounce);
+      ctx.fillRect(sara.x, sara.y, sara.width, sara.height);
+      ctx.restore();
+      ctx.beginPath();
+      ctx.arc(sara.x + 15, sara.y - 10, 10, 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    function drawGrid() {
+    function drawCollectibles() {
+      ctx.font = "32px Arial";
+      collectibles.forEach((item) => {
+        if (!item.collected) ctx.fillText(item.icon, item.x, item.y);
+      });
+    }
+
+    function drawScore() {
+      ctx.fillStyle = "#fff";
+      ctx.font = "20px Arial";
+      ctx.fillText("Score: " + score, 20, 30);
+      if (lastMessage) ctx.fillText(lastMessage, 20, 60);
+    }
+
+    function update() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (let y = 0; y < 8; y++) {
-        for (let x = 0; x < 8; x++) {
-          ctx.strokeStyle = '#ccc';
-          ctx.strokeRect(x * 60, y * 60, 60, 60);
-          const block = grid[y][x];
-          if (block) {
-            ctx.fillStyle = block.color;
-            ctx.fillRect(x * 60 + 2, y * 60 + 2, 56, 56);
-            ctx.fillStyle = '#fff';
-            ctx.font = '42px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(block.icon, x * 60 + 30, y * 60 + 30);
-          }
-        }
+
+      // Gravity
+      sara.vy += sara.gravity;
+      sara.y += sara.vy;
+      if (sara.y >= 300) {
+        sara.y = 300;
+        sara.vy = 0;
+        sara.grounded = true;
       }
-    }
 
-    function generatePieces() {
-      const container = document.getElementById("pieces");
-      container.innerHTML = "";
-      currentPieces = [];
-
-      for (let i = 0; i < 3; i++) {
-        const shape = JSON.parse(JSON.stringify(shapes[Math.floor(Math.random() * shapes.length)]));
-        const block = randomBlock();
-        const id = Math.random().toString(36).slice(2, 11);
-        currentPieces.push({ id, shape, block });
-
-        const div = document.createElement("div");
-        div.className = "piece";
-        div.draggable = true;
-        div.dataset.id = id;
-        shape.forEach((row) => {
-  const rowDiv = document.createElement("div");
-  rowDiv.style.display = 'flex';
-  row.forEach((cell) => {
-    const cellDiv = document.createElement("div");
-    cellDiv.className = "cell";
-    cellDiv.style.backgroundColor = cell ? block.color : "transparent";
-    cellDiv.textContent = cell ? block.icon : "";
-    rowDiv.appendChild(cellDiv);
-  });
-  div.appendChild(rowDiv);
+      // Update collectibles
+      collectibles.forEach((item) => {
+        item.x -= 4;
+        if (!item.collected &&
+            item.x < sara.x + sara.width &&
+            item.x + 20 > sara.x &&
+            item.y > sara.y && item.y < sara.y + sara.height) {
+          item.collected = true;
+          score++;
+          lastMessage = messages[Math.floor(Math.random() * messages.length)];
+        }
       });
-        container.appendChild(div);
+
+      // Draw everything
+      drawSara();
+      drawCollectibles();
+      drawScore();
+
+      // Clean up
+      collectibles = collectibles.filter((item) => item.x > -40);
+
+      // Spawn items every 90 frames
+      if (frameCount % 90 === 0) spawnItem();
+
+      frameCount++;
+      requestAnimationFrame(update);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if ((e.key === " " || e.key === "ArrowUp") && sara.grounded) {
+        sara.vy = sara.jump;
+        sara.grounded = false;
       }
+    });
 
-      document.querySelectorAll(".piece").forEach((piece) => {
-        piece.addEventListener("dragstart", (e) => {
-          dragPieceId = e.currentTarget.dataset.id;
-          // Removed setDragImage to prevent rendering errors
-        });
-      });
-    }
+    document.getElementById("restartBtn").addEventListener("click", () => {
+      collectibles = [];
+      frameCount = 0;
+      score = 0;
+      lastMessage = "";
+      sara.y = 300;
+      sara.vy = 0;
+      sara.grounded = true;
+    });
 
-    function placePiece(piece, gx, gy) {
-      const shape = piece.shape;
-      for (let y = 0; y < shape.length; y++) {
-        for (let x = 0; x < shape[y].length; x++) {
-          if (shape[y][x]) {
-            const px = gx + x;
-            const py = gy + y;
-            if (px < 0 || px >= 8 || py < 0 || py >= 8 || grid[py][px]) {
-              return false;
-            }
-          }
-        }
-      }
-      for (let y = 0; y < shape.length; y++) {
-        for (let x = 0; x < shape[y].length; x++) {
-          if (shape[y][x]) {
-            const px = gx + x;
-            const py = gy + y;
-            grid[py][px] = { ...piece.block };
-          }
-        }
-      }
-      return true;
-    }
-
-    function checkAndClearLines() {
-  let cleared = false;
-  let clearedRows = [];
-  let clearedCols = [];
-
-  for (let y = 0; y < 8; y++) {
-    if (grid[y].every(cell => cell)) clearedRows.push(y);
-  }
-
-  for (let x = 0; x < 8; x++) {
-    if (grid.every(row => row[x])) clearedCols.push(x);
-  }
-
-  if (clearedRows.length || clearedCols.length) {
-    cleared = true;
-    clearedRows.forEach(row => animateClearRow(row));
-    clearedCols.forEach(col => animateClearCol(col));
-
-    setTimeout(() => {
-      clearedRows.forEach(row => grid[row] = Array(8).fill(null));
-      clearedCols.forEach(col => {
-        for (let y = 0; y < 8; y++) grid[y][col] = null;
-      });
-      drawGrid();
-    }, 200);
-  }
-
-  updateScoreDisplay();
-
-  
-
-}
-
-function animateClearRow(row) {
-  for (let x = 0; x < 8; x++) {
-    if (grid[row][x]) {
-      ctx.clearRect(x * 60, row * 60, 60, 60);
-      ctx.fillStyle = '#ffe6f0';
-      ctx.fillRect(x * 60, row * 60, 60, 60);
-    }
-  }
-}
-
-function animateClearCol(col) {
-  for (let y = 0; y < 8; y++) {
-    if (grid[y][col]) {
-      ctx.clearRect(col * 60, y * 60, 60, 60);
-      ctx.fillStyle = '#ffe6f0';
-      ctx.fillRect(col * 60, y * 60, 60, 60);
-    }
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  canvas = document.getElementById('gameCanvas');
-  ctx = canvas.getContext('2d');
-
-  canvas.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    const id = dragPieceId;
-    if (!id) return;
-    const piece = currentPieces.find(p => p.id === id);
-    if (!piece) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const dropX = e.clientX - rect.left;
-    const dropY = e.clientY - rect.top;
-    const gx = Math.floor((dropX - (piece.shape[0].length * 60) / 2) / 60);
-    const gy = Math.floor((dropY - (piece.shape.length * 60) / 2) / 60);
-
-    drawGrid();
-    ctx.save();
-    for (let y = 0; y < piece.shape.length; y++) {
-      for (let x = 0; x < piece.shape[y].length; x++) {
-        if (piece.shape[y][x]) {
-          const px = gx + x;
-          const py = gy + y;
-          if (px >= 0 && px < 8 && py >= 0 && py < 8) {
-            ctx.strokeStyle = grid[py][px] ? 'red' : '#00cc99';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(px * 60 + 6, py * 60 + 6, 48, 48);
-          }
-        }
-      }
-    }
-    ctx.restore();
-  });
-
-  canvas.addEventListener('drop', (e) => {
-    e.preventDefault();
-    const id = dragPieceId;
-    if (!id) return;
-    const piece = currentPieces.find(p => p.id === id);
-    if (!piece) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const dropX = e.clientX - rect.left;
-    const dropY = e.clientY - rect.top;
-    const gx = Math.floor((dropX - (piece.shape[0].length * 60) / 2) / 60);
-    const gy = Math.floor((dropY - (piece.shape.length * 60) / 2) / 60);
-
-    drawGrid();
-    const success = placePiece(piece, gx, gy);
-    if (success) {
-      const el = document.querySelector(`.piece[data-id='${id}']`);
-      if (el) el.remove();
-      currentPieces = currentPieces.filter(p => p.id !== id);
-      dragPieceId = null;
-      checkAndClearLines();
-      drawGrid();
-
-      if (currentPieces.length === 0) {
-        setTimeout(() => {
-          generatePieces();
-        }, 200);
-      }
-    } else {
-      dragPieceId = null;
-    }
-  });
-
-  drawGrid();
-  generatePieces();
-  updateScoreDisplay();
-});
-</script>
+    update();
+  </script>
 </body>
 </html>
