@@ -119,16 +119,18 @@ function drawObstacles() {
 }
 
 function checkObstacleCollision() {
-  obstacles.forEach((ob) => {
+  for (let i = 0; i < obstacles.length; i++) {
+    const ob = obstacles[i];
     if (
       ob.x < sara.x + sara.width &&
       ob.x + ob.width > sara.x &&
       ob.y < sara.y + sara.height &&
       ob.y + ob.height > sara.y
     ) {
-      alert("Oh no! Sara hit an obstacle 💔");
-      location.reload();
+      setTimeout(() => location.reload(), 100);
     }
+  }
+}
   });
 }
 
@@ -165,10 +167,7 @@ function update() {
       drawCollectibles();
       drawScore();
   drawObstacles();
-  ctx.fillStyle = '#a00';
-  obstacles.forEach((ob) => {
-    ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
-  });
+  
 
       // Clean up
       collectibles = collectibles.filter((item) => item.x > -40);
