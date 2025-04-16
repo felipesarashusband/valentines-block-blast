@@ -38,15 +38,16 @@ const backgroundImage = new Image();
 backgroundImage.src = "https://i.ibb.co/5hvzJkyZ/images.jpg";
 
     const sara = {
-      x: 50,
-      y: 300,
-      width: 30,
-      height: 60,
-      vy: 0,
-      gravity: 0.6,
-      jump: -12,
-      grounded: true,
-    };
+  x: 50,
+  y: 300,
+  width: 30,
+  height: 60,
+  vy: 0,
+  gravity: 0.6,
+  jump: -12,
+  grounded: true,
+  ducking: false
+};
 
     let score = 0;
     const messages = [
@@ -63,6 +64,7 @@ backgroundImage.src = "https://i.ibb.co/5hvzJkyZ/images.jpg";
 
     let collectibles = [];
     let frameCount = 0;
+let obstacles = [];
     let lastMessage = "";
 
     function spawnItem() {
@@ -76,15 +78,18 @@ backgroundImage.src = "https://i.ibb.co/5hvzJkyZ/images.jpg";
     }
 
     function drawSara() {
-      ctx.fillStyle = "#000";
-      ctx.save();
-      const bounce = sara.vy < 0 ? -5 : 0;
-      ctx.translate(0, bounce);
-      ctx.fillRect(sara.x, sara.y, sara.width, sara.height);
-      ctx.restore();
-      ctx.beginPath();
-      ctx.arc(sara.x + 15, sara.y - 10, 10, 0, Math.PI * 2);
-      ctx.fill();
+  ctx.fillStyle = "#000";
+  ctx.save();
+  const bounce = sara.vy < 0 ? -5 : 0;
+  ctx.translate(0, bounce);
+
+  const height = sara.ducking ? sara.height / 2 : sara.height;
+  ctx.fillRect(sara.x, sara.y + (sara.height - height), sara.width, height);
+
+  ctx.restore();
+  ctx.beginPath();
+  ctx.arc(sara.x + 15, sara.y - 10, 10, 0, Math.PI * 2);
+  ctx.fill();
     }
 
     function drawCollectibles() {
@@ -101,7 +106,32 @@ backgroundImage.src = "https://i.ibb.co/5hvzJkyZ/images.jpg";
       if (lastMessage) ctx.fillText(lastMessage, 20, 60);
     }
 
-    function update() {
+    function spawnObstacle() {
+  obstacles.push({ x: canvas.width, y: 330, width: 20, height: 40 });
+}
+
+function drawObstacles() {
+  ctx.fillStyle = '#a00';
+  obstacles.forEach((ob) => {
+    ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+  });
+}
+
+function checkObstacleCollision() {
+  obstacles.forEach((ob) => {
+    if (
+      ob.x < sara.x + sara.width &&
+      ob.x + ob.width > sara.x &&
+      ob.y < sara.y + sara.height &&
+      ob.y + ob.height > sara.y
+    ) {
+      alert("Oh no! Sara hit an obstacle 💔");
+      location.reload();
+    }
+  });
+}
+
+function update() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
 
@@ -112,6 +142,8 @@ backgroundImage.src = "https://i.ibb.co/5hvzJkyZ/images.jpg";
         sara.y = 300;
         sara.vy = 0;
         sara.grounded = true;
+  if (sara.ducking) sara.y = 330;
+  else sara.y = 300;
       }
 
       // Update collectibles
@@ -131,6 +163,7 @@ backgroundImage.src = "https://i.ibb.co/5hvzJkyZ/images.jpg";
       drawSara();
       drawCollectibles();
       drawScore();
+  drawObstacles();
 
       // Clean up
       collectibles = collectibles.filter((item) => item.x > -40);
@@ -138,16 +171,29 @@ backgroundImage.src = "https://i.ibb.co/5hvzJkyZ/images.jpg";
       // Spawn items every 90 frames
       if (frameCount % 90 === 0) spawnItem();
 
-      frameCount++;
+      obstacles.forEach(ob => ob.x -= 4);
+  obstacles = obstacles.filter(ob => ob.x > -40);
+  checkObstacleCollision();
+  if (frameCount % 150 === 0) spawnObstacle();
+  frameCount++;
       requestAnimationFrame(update);
     }
 
     document.addEventListener("keydown", (e) => {
-      if ((e.key === " " || e.key === "ArrowUp") && sara.grounded) {
-        sara.vy = sara.jump;
-        sara.grounded = false;
-      }
-    });
+  if ((e.key === " " || e.key === "ArrowUp") && sara.grounded) {
+    sara.vy = sara.jump;
+    sara.grounded = false;
+  }
+  if (e.key === "ArrowDown") {
+    sara.ducking = true;
+  }
+});
+
+document.addEventListener("keyup", (e) => {
+  if (e.key === "ArrowDown") {
+    sara.ducking = false;
+  }
+});
 
     document.getElementById("restartBtn").addEventListener("click", () => {
       collectibles = [];
