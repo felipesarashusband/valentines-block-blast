@@ -127,7 +127,7 @@ function checkObstacleCollision() {
       ob.y < sara.y + sara.height &&
       ob.y + ob.height > sara.y
     ) {
-      setTimeout(() => location.reload(), 100);
+      window.location.reload();
     }
   }
 }
