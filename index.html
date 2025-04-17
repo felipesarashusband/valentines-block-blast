@@ -65,6 +65,7 @@ backgroundImage.src = "https://i.ibb.co/5hvzJkyZ/images.jpg";
 
     let collectibles = [];
     let frameCount = 0;
+let speed = 4;
 let obstacles = [];
     let lastMessage = "";
 
@@ -110,7 +111,8 @@ let obstacles = [];
     }
 
     function spawnObstacle() {
-  obstacles.push({ x: canvas.width, y: 330, width: 32, height: 32, icon: '❄️' });
+  const icons = ['❄️', '🌨️', '☃️'];
+  obstacles.push({ x: canvas.width, y: 330, width: 32, height: 32, icon: icons[Math.floor(Math.random() * icons.length)] });
 }
 
 function drawObstacles() {
@@ -175,7 +177,7 @@ function update() {
       // Spawn items every 90 frames
       if (frameCount % 90 === 0) spawnItem();
 
-      const speed = 4 + Math.floor(score / 10);
+      speed = 4 + Math.floor(score / 10);
   obstacles.forEach(ob => ob.x -= speed);
   obstacles = obstacles.filter(ob => ob.x > -40);
   checkObstacleCollision();
