@@ -82,6 +82,8 @@ let obstacles = [];
   ctx.fillStyle = "#000";
   ctx.save();
   const bounce = sara.vy < 0 ? -5 : 0;
+  const slideOffset = sara.ducking && sara.grounded ? 5 : 0;
+  ctx.translate(slideOffset, bounce);
   ctx.translate(0, bounce);
 
   const height = sara.ducking ? sara.height / 2 : sara.height;
@@ -125,7 +127,7 @@ function checkObstacleCollision() {
     if (
       ob.x < sara.x + sara.width &&
       ob.x + ob.width > sara.x &&
-      ob.y < sara.y + sara.height &&
+      ob.y < sara.y + (sara.ducking ? sara.height / 2 : sara.height) &&
       ob.y + ob.height > sara.y
     ) {
       window.location.reload();
@@ -145,8 +147,6 @@ function update() {
         sara.y = 300;
         sara.vy = 0;
         sara.grounded = true;
-  if (sara.ducking) sara.y = 330;
-  else sara.y = 300;
       }
 
       // Update collectibles
