@@ -128,10 +128,11 @@ function checkObstacleCollision() {
       ob.y < sara.y + sara.height &&
       ob.y + ob.height > sara.y
     ) {
-      cancelAnimationFrame(updateId);
-      setTimeout(() => window.location.reload(), 100);
+      window.location.href = window.location.href;
       return;
     }
+  }
+}
   }
 }
   }
