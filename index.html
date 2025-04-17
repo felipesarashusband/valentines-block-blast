@@ -107,6 +107,8 @@ let obstacles = [];
       ctx.fillStyle = "#fff";
       ctx.font = "20px Arial";
       ctx.fillText("Score: " + score, 20, 30);
+  ctx.fillText("High Score: " + (localStorage.highScore || 0), 20, 50);
+  ctx.fillText("Speed: " + speed, 20, 70);
       if (lastMessage) ctx.fillText(lastMessage, 20, 60);
     }
 
@@ -157,9 +159,12 @@ function update() {
         if (!item.collected &&
             item.x < sara.x + sara.width &&
             item.x + 20 > sara.x &&
-            item.y > sara.y && item.y < sara.y + sara.height) {
+            item.y > sara.y && item.y < sara.y + (sara.ducking ? sara.height / 2 : sara.height)) {
           item.collected = true;
           score++;
+          if (!localStorage.highScore || score > parseInt(localStorage.highScore)) {
+            localStorage.highScore = score;
+          }
           lastMessage = messages[Math.floor(Math.random() * messages.length)];
         }
       });
