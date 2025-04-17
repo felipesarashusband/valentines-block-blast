@@ -151,7 +151,7 @@ function update() {
 
       // Update collectibles
       collectibles.forEach((item) => {
-        item.x -= 4;
+        item.x -= speed;
         if (!item.collected &&
             item.x < sara.x + sara.width &&
             item.x + 20 > sara.x &&
@@ -175,7 +175,8 @@ function update() {
       // Spawn items every 90 frames
       if (frameCount % 90 === 0) spawnItem();
 
-      obstacles.forEach(ob => ob.x -= 4);
+      const speed = 4 + Math.floor(score / 10);
+  obstacles.forEach(ob => ob.x -= speed);
   obstacles = obstacles.filter(ob => ob.x > -40);
   checkObstacleCollision();
   if (frameCount % 120 === 0) spawnObstacle();
