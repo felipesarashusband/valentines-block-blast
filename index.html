@@ -109,7 +109,7 @@ let obstacles = [];
       ctx.fillText("Score: " + score, 20, 30);
   ctx.fillText("High Score: " + (localStorage.highScore || 0), 20, 50);
   ctx.fillText("Speed: " + speed, 20, 70);
-      if (lastMessage) ctx.fillText(lastMessage, 20, 60);
+  if (lastMessage) ctx.fillText(lastMessage, 20, 100);
     }
 
     function spawnObstacle() {
@@ -157,9 +157,9 @@ function update() {
       collectibles.forEach((item) => {
         item.x -= speed;
         if (!item.collected &&
-            item.x < sara.x + sara.width &&
-            item.x + 20 > sara.x &&
-            item.y > sara.y && item.y < sara.y + (sara.ducking ? sara.height / 2 : sara.height)) {
+        item.x < sara.x + sara.width &&
+        item.x + 20 > sara.x &&
+        item.y > sara.y && item.y < sara.y + (sara.ducking ? sara.height / 2 : sara.height) && !sara.ducking) {
           item.collected = true;
           score++;
           if (!localStorage.highScore || score > parseInt(localStorage.highScore)) {
