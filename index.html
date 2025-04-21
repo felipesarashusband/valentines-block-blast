@@ -177,7 +177,7 @@
       ctx.font = "20px Arial";
       ctx.fillText("Score: " + score, 20, 30);
       ctx.fillText("High Score: " + (localStorage.highScore || 0), 20, 55);
-      ctx.fillText("Speed: " + speed, 20, 80);
+      ctx.fillText("Speed: " + speed.toFixed(1), 20, 80);
       if (lastMessage) ctx.fillText(lastMessage, 20, 110);
     }
 
@@ -242,7 +242,7 @@
       if (frameCount % 90 === 0) spawnItem();
       if (frameCount === nextObstacleFrame) spawnObstacle();
 
-      speed = 7 + Math.floor(score / 10);
+      speed = 7 + score * 0.1;
       frameCount++;
       updateId = requestAnimationFrame(update);
     }
