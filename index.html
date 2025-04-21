@@ -30,7 +30,7 @@
       position: absolute;
       top: 20px;
       left: 20px;
-      font-size: 24px;
+      font-size: 40px;
       background: none;
       border: none;
       cursor: pointer;
@@ -159,7 +159,7 @@
     }
 
     function drawScore() {
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = "#111";
       ctx.font = "20px Arial";
       ctx.fillText("Score: " + score, 20, 30);
       ctx.fillText("High Score: " + (localStorage.highScore || 0), 20, 55);
