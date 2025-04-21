@@ -84,6 +84,7 @@
     let speed = 7;
     let paused = false;
     let updateId;
+    let nextObstacleFrame = 120 + Math.floor(Math.random() * 180);
 
     const sara = {
       x: 50,
@@ -115,19 +116,33 @@
 
     const items = ["💌", "🌹", "💋", "🧸", "💍", "🍓", "🍫"];
 
+    function isSafeToSpawn(x, margin = 60) {
+      return !obstacles.some(ob => Math.abs(ob.x - x) < margin);
+    }
+
     function spawnItem() {
-      const emoji = items[Math.floor(Math.random() * items.length)];
-      collectibles.push({
-        x: canvas.width,
-        y: 320,
-        icon: emoji,
-        collected: false,
-      });
+      const x = canvas.width;
+      if (isSafeToSpawn(x)) {
+        const emoji = items[Math.floor(Math.random() * items.length)];
+        collectibles.push({
+          x: x,
+          y: 320,
+          icon: emoji,
+          collected: false,
+        });
+      }
     }
 
     function spawnObstacle() {
       const icons = ['❄️', '🌨️', '☃️'];
-      obstacles.push({ x: canvas.width, y: 330, width: 32, height: 32, icon: icons[Math.floor(Math.random() * icons.length)] });
+      obstacles.push({
+        x: canvas.width,
+        y: 330,
+        width: 32,
+        height: 32,
+        icon: icons[Math.floor(Math.random() * icons.length)]
+      });
+      nextObstacleFrame = frameCount + 100 + Math.floor(Math.random() * 200);
     }
 
     function drawSara() {
@@ -226,7 +241,8 @@
       checkObstacleCollision();
 
       if (frameCount % 90 === 0) spawnItem();
-      if (frameCount % 120 === 0) spawnObstacle();
+      if (frameCount === nextObstacleFrame) spawnObstacle();
+
       speed = 7 + Math.floor(score / 10);
       frameCount++;
       updateId = requestAnimationFrame(update);
