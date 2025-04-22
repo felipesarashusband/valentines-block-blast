@@ -1,34 +1,363 @@
-<!-- Replace the existing romanticQuotes array with this one: -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Love Quest – For Sara 💖</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+    }
+    #restartBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #fff;
+      border: 2px solid #d33;
+      border-radius: 10px;
+      cursor: pointer;
+      z-index: 10;
+    }
+    #pauseBtn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 40px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      z-index: 1001;
+    }
+    #pauseOverlay {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <button id="restartBtn">Restart 🔁</button>
+  <button id="pauseBtn">❄️</button>
 
-const romanticQuotes = [
-  "Forever yours 💘",
-  "With you, always 💞",
-  "Every step, closer to you 💖",
-  "You light up my sky ✨",
-  "This journey is ours 💫",
-  "My heart races with yours 🫀",
-  "You're my favorite hello 💋",
-  "I’d pause time just to stay with you ⏳💕",
-  "You + Me = Always 💍",
-  "Endless love, endless run 💞",
-  "You feel like home 🏡💖",
-  "I’m lucky you're mine 🍀",
-  "Your love is my fuel 🔥",
-  "Hold my hand forever 🤝💘",
-  "Every moment with you is magic ✨",
-  "You’re the beat in my step 🎵",
-  "This love is unstoppable 💓",
-  "You’re the dream I don’t want to wake up from 😴💫",
-  "Love looks good on you 😍",
-  "You’re the sunrise in my story 🌅",
-  "My forever, my always 🌙",
-  "My heart found its rhythm in you 💓",
-  "Even forever isn’t long enough 🕰️💖",
-  "When I run, I run to you 🏃‍♂️❤️",
-  "Loving you is the best adventure 🌍💘",
-  "Sara, you’re my everything 💗",
-  "The stars spell your name tonight 🌌",
-  "Together is my favorite place 💞",
-  "This road leads to love 💕",
-  "Every heartbeat spells your name 💓"
-];
+  <div id="pauseOverlay">
+    <h1>Game Paused 💖</h1>
+    <button onclick="resumeGame()" style="margin:10px;padding:10px 20px;font-size:18px;">▶️ Resume</button>
+    <button onclick="window.location.reload()" style="margin:10px;padding:10px 20px;font-size:18px;">🔁 Restart</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const backgroundImage = new Image();
+    backgroundImage.src = "https://i.ibb.co/6cdFLXRQ/Adobe-Stock-254792625-Kopiowanie.jpg";
+
+    let backgroundOffset = 0;
+    let speed = 7;
+    let paused = false;
+    let updateId;
+    let nextObstacleFrame = 120 + Math.floor(Math.random() * 160);
+
+    const sara = {
+      x: 50,
+      y: 300,
+      width: 30,
+      height: 60,
+      vy: 0,
+      gravity: 0.6,
+      jump: -12,
+      grounded: true,
+      ducking: false
+    };
+
+    let score = 0;
+    let collectibles = [];
+    let obstacles = [];
+    let lastMessage = "";
+    let frameCount = 0;
+
+    const messages = [
+      "I love you so much, baby 💖",
+      "You make me smile every day 💘",
+      "You are so stunning, my love 💋",
+      "You’re my whole world 💍",
+      "My forever valentine 🌹",
+      "You're sweeter than chocolate 🍫",
+      "You’re my favorite hello 🧸",
+    ];
+
+    const romanticQuotes = [
+      "Forever yours 💘",
+      "With you, always 💞",
+      "Every step, closer to you 💖",
+      "You light up my sky ✨",
+      "This journey is ours 💫",
+      "My heart races with yours 🫀",
+      "You're my favorite hello 💋",
+      "I’d pause time just to stay with you ⏳💕",
+      "You + Me = Always 💍",
+      "Endless love, endless run 💞",
+      "You feel like home 🏡💖",
+      "I’m lucky you're mine 🍀",
+      "Your love is my fuel 🔥",
+      "Hold my hand forever 🤝💘",
+      "Every moment with you is magic ✨",
+      "You’re the beat in my step 🎵",
+      "This love is unstoppable 💓",
+      "You’re the dream I don’t want to wake up from 😴💫",
+      "Love looks good on you 😍",
+      "You’re the sunrise in my story 🌅",
+      "My forever, my always 🌙",
+      "My heart found its rhythm in you 💓",
+      "Even forever isn’t long enough 🕰️💖",
+      "When I run, I run to you 🏃‍♂️❤️",
+      "Loving you is the best adventure 🌍💘",
+      "Sara, you’re my everything 💗",
+      "The stars spell your name tonight 🌌",
+      "Together is my favorite place 💞",
+      "This road leads to love 💕",
+      "Every heartbeat spells your name 💓"
+    ];
+
+    const items = ["💌", "🌹", "💋", "🧸", "💍", "🍓", "🍫"];
+    let floatingText = null;
+
+    let overlayHue = 330;
+    let overlayDirection = -0.02;
+
+    function drawOverlayTint() {
+      overlayHue += overlayDirection;
+      if (overlayHue <= 270 || overlayHue >= 330) overlayDirection *= -1;
+
+      ctx.fillStyle = `hsla(${overlayHue}, 60%, 40%, 0.25)`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function spawnFloatingText() {
+      const text = romanticQuotes[Math.floor(Math.random() * romanticQuotes.length)];
+      floatingText = { text, x: 300, y: 100, alpha: 1, timer: 0 };
+    }
+
+    function drawFloatingText() {
+      if (floatingText) {
+        ctx.globalAlpha = floatingText.alpha;
+        ctx.fillStyle = "#fff";
+        ctx.font = "28px cursive";
+        ctx.fillText(floatingText.text, floatingText.x, floatingText.y);
+        ctx.globalAlpha = 1;
+
+        floatingText.y -= 0.3;
+        floatingText.alpha -= 0.005;
+        floatingText.timer++;
+
+        if (floatingText.alpha <= 0 || floatingText.timer > 400) {
+          floatingText = null;
+        }
+      }
+    }
+
+    function isSafeToSpawn(x, margin = 60) {
+      return !obstacles.some(ob => Math.abs(ob.x - x) < margin);
+    }
+
+    function spawnItem() {
+      const x = canvas.width;
+      if (isSafeToSpawn(x)) {
+        const emoji = items[Math.floor(Math.random() * items.length)];
+        collectibles.push({ x: x, y: 320, icon: emoji, collected: false });
+      }
+    }
+
+    function spawnObstacle() {
+      obstacles.push({
+        x: canvas.width,
+        y: 330,
+        width: 32,
+        height: 32,
+        icon: '❄️'
+      });
+      nextObstacleFrame = frameCount + 70 + Math.floor(Math.random() * 160);
+    }
+
+    function drawSara() {
+      ctx.fillStyle = "#000";
+      ctx.save();
+      const bounce = sara.vy < 0 ? -5 : 0;
+      const slideOffset = sara.ducking && sara.grounded ? 5 : 0;
+      ctx.translate(slideOffset, bounce);
+      const height = sara.ducking ? sara.height / 2 : sara.height;
+      ctx.fillRect(sara.x, sara.y + (sara.height - height), sara.width, height);
+      ctx.restore();
+      ctx.beginPath();
+      ctx.arc(sara.x + 15, sara.y - 10, 10, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawCollectibles() {
+      ctx.font = "32px Arial";
+      collectibles.forEach(item => {
+        if (!item.collected) ctx.fillText(item.icon, item.x, item.y);
+      });
+    }
+
+    function drawObstacles() {
+      ctx.font = '32px Arial';
+      obstacles.forEach(ob => {
+        ctx.fillText(ob.icon, ob.x, ob.y);
+      });
+    }
+
+    function drawScore() {
+      ctx.fillStyle = "#111";
+      ctx.font = "20px Arial";
+      ctx.fillText("Score: " + score, 20, 30);
+      ctx.fillText("High Score: " + (localStorage.highScore || 0), 20, 55);
+      ctx.fillText("Speed: " + speed.toFixed(1), 20, 80);
+      if (lastMessage) ctx.fillText(lastMessage, 20, 110);
+    }
+
+    function checkObstacleCollision() {
+      for (let ob of obstacles) {
+        if (
+          ob.x < sara.x + sara.width &&
+          ob.x + ob.width > sara.x &&
+          ob.y < sara.y + (sara.ducking ? sara.height / 2 : sara.height) &&
+          ob.y + ob.height > sara.y
+        ) {
+          window.location.reload();
+          return;
+        }
+      }
+    }
+
+    function update() {
+      if (paused) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(backgroundImage, -backgroundOffset, 0, canvas.width, canvas.height);
+      ctx.drawImage(backgroundImage, canvas.width - backgroundOffset, 0, canvas.width, canvas.height);
+      backgroundOffset = (backgroundOffset + speed / 4) % canvas.width;
+
+      drawOverlayTint();
+      drawFloatingText();
+
+      sara.vy += sara.gravity;
+      sara.y += sara.vy;
+      if (sara.y >= 300) {
+        sara.y = 300;
+        sara.vy = 0;
+        sara.grounded = true;
+      }
+
+      collectibles.forEach(item => {
+        item.x -= speed;
+        if (
+          !item.collected &&
+          !sara.ducking &&
+          item.x < sara.x + sara.width &&
+          item.x + 20 > sara.x &&
+          item.y > sara.y &&
+          item.y < sara.y + sara.height
+        ) {
+          item.collected = true;
+          score++;
+          if (!localStorage.highScore || score > parseInt(localStorage.highScore)) {
+            localStorage.highScore = score;
+          }
+          lastMessage = messages[Math.floor(Math.random() * messages.length)];
+        }
+      });
+
+      obstacles.forEach(ob => ob.x -= speed);
+      collectibles = collectibles.filter(item => item.x > -40);
+      obstacles = obstacles.filter(ob => ob.x > -40);
+
+      drawSara();
+      drawCollectibles();
+      drawObstacles();
+      drawScore();
+      checkObstacleCollision();
+
+      if (frameCount % 90 === 0) spawnItem();
+      if (frameCount === nextObstacleFrame) spawnObstacle();
+      if (frameCount % 600 === 0) spawnFloatingText();
+
+      speed = 7 + score * 0.1;
+      frameCount++;
+      updateId = requestAnimationFrame(update);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if ((e.key === " " || e.key === "ArrowUp") && sara.grounded) {
+        sara.vy = sara.jump;
+        sara.grounded = false;
+      }
+      if (e.key === "ArrowDown") {
+        sara.ducking = true;
+      }
+      if (e.key === "p" || e.key === "P") {
+        togglePause();
+      }
+    });
+
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowDown") {
+        sara.ducking = false;
+      }
+    });
+
+    document.getElementById("restartBtn").addEventListener("click", () => {
+      location.reload();
+    });
+
+    document.getElementById("pauseBtn").addEventListener("click", togglePause);
+
+    function togglePause() {
+      paused = !paused;
+      const overlay = document.getElementById("pauseOverlay");
+      if (paused) {
+        cancelAnimationFrame(updateId);
+        overlay.style.display = "flex";
+        setTimeout(() => overlay.style.opacity = 1, 10);
+      } else {
+        overlay.style.opacity = 0;
+        setTimeout(() => {
+          overlay.style.display = "none";
+          update();
+        }, 300);
+      }
+    }
+
+    function resumeGame() {
+      paused = false;
+      const overlay = document.getElementById("pauseOverlay");
+      overlay.style.opacity = 0;
+      setTimeout(() => {
+        overlay.style.display = "none";
+        update();
+      }, 300);
+    }
+
+    update();
+  </script>
+</body>
+</html>
