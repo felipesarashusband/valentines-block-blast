@@ -84,7 +84,7 @@
     let speed = 7;
     let paused = false;
     let updateId;
-    let nextObstacleFrame = 120 + Math.floor(Math.random() * 180);
+    let nextObstacleFrame = 120 + Math.floor(Math.random() * 160); // 70–230
 
     const sara = {
       x: 50,
@@ -141,7 +141,7 @@
         height: 32,
         icon: '❄️'
       });
-      nextObstacleFrame = frameCount + 100 + Math.floor(Math.random() * 200);
+      nextObstacleFrame = frameCount + 70 + Math.floor(Math.random() * 160); // 70–230
     }
 
     function drawSara() {
