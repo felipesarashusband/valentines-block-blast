@@ -52,19 +52,10 @@
       justify-content: center;
       z-index: 1000;
     }
-    #overlayTint {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      z-index: 1;
-      pointer-events: none;
-    }
   </style>
 </head>
 <body>
   <canvas id="gameCanvas" width="800" height="400"></canvas>
-  <div id="overlayTint"></div>
   <button id="restartBtn">Restart 🔁</button>
   <button id="pauseBtn">❄️</button>
 
@@ -77,6 +68,7 @@
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
+
     const backgroundImage = new Image();
     backgroundImage.src = "https://i.ibb.co/6cdFLXRQ/Adobe-Stock-254792625-Kopiowanie.jpg";
 
@@ -84,7 +76,7 @@
     let speed = 7;
     let paused = false;
     let updateId;
-    let nextObstacleFrame = 120 + Math.floor(Math.random() * 160); // 70–230
+    let nextObstacleFrame = 120 + Math.floor(Math.random() * 160);
 
     const sara = {
       x: 50,
@@ -114,7 +106,50 @@
       "You’re my favorite hello 🧸",
     ];
 
+    const romanticQuotes = [
+      "Forever yours 💘",
+      "With you, always 💞",
+      "Every step, closer to you 💖",
+      "You light up my sky ✨",
+      "This journey is ours 💫"
+    ];
+
     const items = ["💌", "🌹", "💋", "🧸", "💍", "🍓", "🍫"];
+    let floatingText = null;
+
+    let overlayHue = 330; // start at sunset hue
+    let overlayDirection = -0.02; // shift hue slowly toward 270 (purple night)
+
+    function drawOverlayTint() {
+      overlayHue += overlayDirection;
+      if (overlayHue <= 270 || overlayHue >= 330) overlayDirection *= -1;
+
+      ctx.fillStyle = `hsla(${overlayHue}, 60%, 40%, 0.25)`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function spawnFloatingText() {
+      const text = romanticQuotes[Math.floor(Math.random() * romanticQuotes.length)];
+      floatingText = { text, x: 300, y: 100, alpha: 1, timer: 0 };
+    }
+
+    function drawFloatingText() {
+      if (floatingText) {
+        ctx.globalAlpha = floatingText.alpha;
+        ctx.fillStyle = "#fff";
+        ctx.font = "28px cursive";
+        ctx.fillText(floatingText.text, floatingText.x, floatingText.y);
+        ctx.globalAlpha = 1;
+
+        floatingText.y -= 0.3;
+        floatingText.alpha -= 0.005;
+        floatingText.timer++;
+
+        if (floatingText.alpha <= 0 || floatingText.timer > 400) {
+          floatingText = null;
+        }
+      }
+    }
 
     function isSafeToSpawn(x, margin = 60) {
       return !obstacles.some(ob => Math.abs(ob.x - x) < margin);
@@ -124,12 +159,7 @@
       const x = canvas.width;
       if (isSafeToSpawn(x)) {
         const emoji = items[Math.floor(Math.random() * items.length)];
-        collectibles.push({
-          x: x,
-          y: 320,
-          icon: emoji,
-          collected: false,
-        });
+        collectibles.push({ x: x, y: 320, icon: emoji, collected: false });
       }
     }
 
@@ -141,7 +171,7 @@
         height: 32,
         icon: '❄️'
       });
-      nextObstacleFrame = frameCount + 70 + Math.floor(Math.random() * 160); // 70–230
+      nextObstacleFrame = frameCount + 70 + Math.floor(Math.random() * 160);
     }
 
     function drawSara() {
@@ -202,6 +232,9 @@
       ctx.drawImage(backgroundImage, canvas.width - backgroundOffset, 0, canvas.width, canvas.height);
       backgroundOffset = (backgroundOffset + speed / 4) % canvas.width;
 
+      drawOverlayTint();
+      drawFloatingText();
+
       sara.vy += sara.gravity;
       sara.y += sara.vy;
       if (sara.y >= 300) {
@@ -241,6 +274,7 @@
 
       if (frameCount % 90 === 0) spawnItem();
       if (frameCount === nextObstacleFrame) spawnObstacle();
+      if (frameCount % 600 === 0) spawnFloatingText();
 
       speed = 7 + score * 0.1;
       frameCount++;
