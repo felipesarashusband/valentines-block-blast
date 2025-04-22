@@ -72,8 +72,6 @@
     const backgroundImage = new Image();
     backgroundImage.src = "https://i.ibb.co/6cdFLXRQ/Adobe-Stock-254792625-Kopiowanie.jpg";
 
-    let backgroundOffset = 0;
-    let baseSpeed = 7;
     let paused = false;
     let updateId;
     let nextObstacleFrame = 120 + Math.floor(Math.random() * 160);
@@ -95,6 +93,7 @@
     let obstacles = [];
     let lastMessage = "";
     let frameCount = 0;
+    let backgroundOffset = 0;
 
     const messages = [
       "I love you so much, baby 💖",
@@ -107,36 +106,16 @@
     ];
 
     const romanticQuotes = [
-      "Forever yours 💘",
-      "With you, always 💞",
-      "Every step, closer to you 💖",
-      "You light up my sky ✨",
-      "This journey is ours 💫",
-      "My heart races with yours 🫀",
-      "You're my favorite hello 💋",
-      "I’d pause time just to stay with you ⏳💕",
-      "You + Me = Always 💍",
-      "Endless love, endless run 💞",
-      "You feel like home 🏡💖",
-      "I’m lucky you're mine 🍀",
-      "Your love is my fuel 🔥",
-      "Hold my hand forever 🤝💘",
-      "Every moment with you is magic ✨",
-      "You’re the beat in my step 🎵",
-      "This love is unstoppable 💓",
-      "You’re the dream I don’t want to wake up from 😴💫",
-      "Love looks good on you 😍",
-      "You’re the sunrise in my story 🌅",
-      "My forever, my always 🌙",
-      "My heart found its rhythm in you 💓",
-      "Even forever isn’t long enough 🕰️💖",
-      "When I run, I run to you 🏃‍♂️❤️",
-      "Loving you is the best adventure 🌍💘",
-      "Sara, you’re my everything 💗",
-      "The stars spell your name tonight 🌌",
-      "Together is my favorite place 💞",
-      "This road leads to love 💕",
-      "Every heartbeat spells your name 💓"
+      "Forever yours 💘", "With you, always 💞", "Every step, closer to you 💖", "You light up my sky ✨",
+      "This journey is ours 💫", "My heart races with yours 🫀", "You're my favorite hello 💋",
+      "I’d pause time just to stay with you ⏳💕", "You + Me = Always 💍", "Endless love, endless run 💞",
+      "You feel like home 🏡💖", "I’m lucky you're mine 🍀", "Your love is my fuel 🔥", "Hold my hand forever 🤝💘",
+      "Every moment with you is magic ✨", "You’re the beat in my step 🎵", "This love is unstoppable 💓",
+      "You’re the dream I don’t want to wake up from 😴💫", "Love looks good on you 😍",
+      "You’re the sunrise in my story 🌅", "My forever, my always 🌙", "My heart found its rhythm in you 💓",
+      "Even forever isn’t long enough 🕰️💖", "When I run, I run to you 🏃‍♂️❤️", "Loving you is the best adventure 🌍💘",
+      "Sara, you’re my everything 💗", "The stars spell your name tonight 🌌", "Together is my favorite place 💞",
+      "This road leads to love 💕", "Every heartbeat spells your name 💓"
     ];
 
     const items = ["💌", "🌹", "💋", "🧸", "💍", "🍓", "🍫"];
@@ -173,16 +152,9 @@
       }
     }
 
-    function isSafeToSpawn(x, margin = 60) {
-      return !obstacles.some(ob => Math.abs(ob.x - x) < margin);
-    }
-
     function spawnItem() {
-      const x = canvas.width;
-      if (isSafeToSpawn(x)) {
-        const emoji = items[Math.floor(Math.random() * items.length)];
-        collectibles.push({ x: x, y: 420, icon: emoji, collected: false });
-      }
+      const emoji = items[Math.floor(Math.random() * items.length)];
+      collectibles.push({ x: canvas.width, y: 420, icon: emoji, collected: false });
     }
 
     function spawnObstacle() {
@@ -243,10 +215,12 @@
 
     function update() {
       if (paused) return;
+      const calculatedSpeed = 7 + Math.floor(score / 10);
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(backgroundImage, -backgroundOffset, 0, canvas.width, canvas.height);
       ctx.drawImage(backgroundImage, canvas.width - backgroundOffset, 0, canvas.width, canvas.height);
-      backgroundOffset = (backgroundOffset + baseSpeed / 4) % canvas.width;
+      backgroundOffset = (backgroundOffset + calculatedSpeed / 4) % canvas.width;
 
       drawOverlayTint();
       drawFloatingText();
@@ -260,7 +234,7 @@
       }
 
       collectibles.forEach(item => {
-        item.x -= baseSpeed;
+        item.x -= calculatedSpeed;
         if (
           !item.collected &&
           !sara.ducking &&
@@ -278,12 +252,9 @@
         }
       });
 
-      obstacles.forEach(ob => ob.x -= baseSpeed);
+      obstacles.forEach(ob => ob.x -= calculatedSpeed);
       collectibles = collectibles.filter(item => item.x > -40);
       obstacles = obstacles.filter(ob => ob.x > -40);
-
-      const calculatedSpeed = 7 + Math.floor(score / 10);
-      baseSpeed = calculatedSpeed;
 
       drawSara();
       drawCollectibles();
