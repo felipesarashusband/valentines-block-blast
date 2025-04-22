@@ -68,7 +68,6 @@
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
-
     const backgroundImage = new Image();
     backgroundImage.src = "https://i.ibb.co/6cdFLXRQ/Adobe-Stock-254792625-Kopiowanie.jpg";
 
@@ -77,15 +76,9 @@
     let nextObstacleFrame = 120 + Math.floor(Math.random() * 160);
 
     const sara = {
-      x: 50,
-      y: 400,
-      width: 30,
-      height: 60,
-      vy: 0,
-      gravity: 0.6,
-      jump: -12,
-      grounded: true,
-      ducking: false
+      x: 50, y: 400, width: 30, height: 60,
+      vy: 0, gravity: 0.6, jump: -12,
+      grounded: true, ducking: false
     };
 
     let score = 0;
@@ -96,13 +89,8 @@
     let backgroundOffset = 0;
 
     const messages = [
-      "I love you so much, baby 💖",
-      "You make me smile every day 💘",
-      "You are so stunning, my love 💋",
-      "You’re my whole world 💍",
-      "My forever valentine 🌹",
-      "You're sweeter than chocolate 🍫",
-      "You’re my favorite hello 🧸",
+      "I love you so much, baby 💖", "You make me smile every day 💘", "You are so stunning, my love 💋",
+      "You’re my whole world 💍", "My forever valentine 🌹", "You're sweeter than chocolate 🍫", "You’re my favorite hello 🧸"
     ];
 
     const romanticQuotes = [
@@ -120,7 +108,6 @@
 
     const items = ["💌", "🌹", "💋", "🧸", "💍", "🍓", "🍫"];
     let floatingText = null;
-
     let overlayHue = 330;
     let overlayDirection = -0.02;
 
@@ -146,9 +133,7 @@
         floatingText.y -= 0.3;
         floatingText.alpha -= 0.005;
         floatingText.timer++;
-        if (floatingText.alpha <= 0 || floatingText.timer > 400) {
-          floatingText = null;
-        }
+        if (floatingText.alpha <= 0 || floatingText.timer > 400) floatingText = null;
       }
     }
 
@@ -162,15 +147,67 @@
       nextObstacleFrame = frameCount + 70 + Math.floor(Math.random() * 160);
     }
 
+    function update() {
+      if (paused) return;
+      const speed = 7 + 2 * Math.floor(score / 10);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(backgroundImage, -backgroundOffset, 0, canvas.width, canvas.height);
+      ctx.drawImage(backgroundImage, canvas.width - backgroundOffset, 0, canvas.width, canvas.height);
+      backgroundOffset = (backgroundOffset + speed / 4) % canvas.width;
+
+      drawOverlayTint();
+      drawFloatingText();
+
+      sara.vy += sara.gravity;
+      sara.y += sara.vy;
+      if (sara.y >= 400) {
+        sara.y = 400;
+        sara.vy = 0;
+        sara.grounded = true;
+      }
+
+      collectibles.forEach(item => {
+        item.x -= speed;
+        if (
+          !item.collected &&
+          !sara.ducking &&
+          item.x < sara.x + sara.width &&
+          item.x + 20 > sara.x &&
+          item.y > sara.y &&
+          item.y < sara.y + sara.height
+        ) {
+          item.collected = true;
+          score++;
+          if (!localStorage.highScore || score > parseInt(localStorage.highScore)) {
+            localStorage.highScore = score;
+          }
+          lastMessage = messages[Math.floor(Math.random() * messages.length)];
+        }
+      });
+
+      obstacles.forEach(ob => ob.x -= speed);
+      collectibles = collectibles.filter(item => item.x > -40);
+      obstacles = obstacles.filter(ob => ob.x > -40);
+
+      drawSara();
+      drawCollectibles();
+      drawObstacles();
+      drawScore(speed);
+      checkObstacleCollision();
+
+      if (frameCount % 90 === 0) spawnItem();
+      if (frameCount === nextObstacleFrame) spawnObstacle();
+      if (frameCount % 600 === 0) spawnFloatingText();
+
+      frameCount++;
+      updateId = requestAnimationFrame(update);
+    }
+
     function drawSara() {
       ctx.fillStyle = "#000";
-      ctx.save();
-      const bounce = sara.vy < 0 ? -5 : 0;
-      const slideOffset = sara.ducking && sara.grounded ? 5 : 0;
-      ctx.translate(slideOffset, bounce);
       const height = sara.ducking ? sara.height / 2 : sara.height;
       ctx.fillRect(sara.x, sara.y + (sara.height - height), sara.width, height);
-      ctx.restore();
       ctx.beginPath();
       ctx.arc(sara.x + 15, sara.y - 10, 10, 0, Math.PI * 2);
       ctx.fill();
@@ -184,10 +221,8 @@
     }
 
     function drawObstacles() {
-      ctx.font = '32px Arial';
-      obstacles.forEach(ob => {
-        ctx.fillText(ob.icon, ob.x, ob.y);
-      });
+      ctx.font = "32px Arial";
+      obstacles.forEach(ob => ctx.fillText(ob.icon, ob.x, ob.y));
     }
 
     function drawScore(speed) {
@@ -213,86 +248,20 @@
       }
     }
 
-    function update() {
-      if (paused) return;
-      const calculatedSpeed = 7 + Math.floor(score / 10);
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(backgroundImage, -backgroundOffset, 0, canvas.width, canvas.height);
-      ctx.drawImage(backgroundImage, canvas.width - backgroundOffset, 0, canvas.width, canvas.height);
-      backgroundOffset = (backgroundOffset + calculatedSpeed / 4) % canvas.width;
-
-      drawOverlayTint();
-      drawFloatingText();
-
-      sara.vy += sara.gravity;
-      sara.y += sara.vy;
-      if (sara.y >= 400) {
-        sara.y = 400;
-        sara.vy = 0;
-        sara.grounded = true;
-      }
-
-      collectibles.forEach(item => {
-        item.x -= calculatedSpeed;
-        if (
-          !item.collected &&
-          !sara.ducking &&
-          item.x < sara.x + sara.width &&
-          item.x + 20 > sara.x &&
-          item.y > sara.y &&
-          item.y < sara.y + sara.height
-        ) {
-          item.collected = true;
-          score++;
-          if (!localStorage.highScore || score > parseInt(localStorage.highScore)) {
-            localStorage.highScore = score;
-          }
-          lastMessage = messages[Math.floor(Math.random() * messages.length)];
-        }
-      });
-
-      obstacles.forEach(ob => ob.x -= calculatedSpeed);
-      collectibles = collectibles.filter(item => item.x > -40);
-      obstacles = obstacles.filter(ob => ob.x > -40);
-
-      drawSara();
-      drawCollectibles();
-      drawObstacles();
-      drawScore(calculatedSpeed);
-      checkObstacleCollision();
-
-      if (frameCount % 90 === 0) spawnItem();
-      if (frameCount === nextObstacleFrame) spawnObstacle();
-      if (frameCount % 600 === 0) spawnFloatingText();
-
-      frameCount++;
-      updateId = requestAnimationFrame(update);
-    }
-
     document.addEventListener("keydown", (e) => {
       if ((e.key === " " || e.key === "ArrowUp") && sara.grounded) {
         sara.vy = sara.jump;
         sara.grounded = false;
       }
-      if (e.key === "ArrowDown") {
-        sara.ducking = true;
-      }
-      if (e.key === "p" || e.key === "P") {
-        togglePause();
-      }
+      if (e.key === "ArrowDown") sara.ducking = true;
+      if (e.key === "p" || e.key === "P") togglePause();
     });
 
     document.addEventListener("keyup", (e) => {
-      if (e.key === "ArrowDown") {
-        sara.ducking = false;
-      }
+      if (e.key === "ArrowDown") sara.ducking = false;
     });
 
-    document.getElementById("restartBtn").addEventListener("click", () => {
-      location.reload();
-    });
-
+    document.getElementById("restartBtn").addEventListener("click", () => location.reload());
     document.getElementById("pauseBtn").addEventListener("click", togglePause);
 
     function togglePause() {
