@@ -55,7 +55,7 @@
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <canvas id="gameCanvas" width="1000" height="500"></canvas>
   <button id="restartBtn">Restart 🔁</button>
   <button id="pauseBtn">❄️</button>
 
@@ -73,14 +73,14 @@
     backgroundImage.src = "https://i.ibb.co/6cdFLXRQ/Adobe-Stock-254792625-Kopiowanie.jpg";
 
     let backgroundOffset = 0;
-    let speed = 7;
+    let baseSpeed = 7;
     let paused = false;
     let updateId;
     let nextObstacleFrame = 120 + Math.floor(Math.random() * 160);
 
     const sara = {
       x: 50,
-      y: 300,
+      y: 400,
       width: 30,
       height: 60,
       vy: 0,
@@ -148,14 +148,13 @@
     function drawOverlayTint() {
       overlayHue += overlayDirection;
       if (overlayHue <= 270 || overlayHue >= 330) overlayDirection *= -1;
-
       ctx.fillStyle = `hsla(${overlayHue}, 60%, 40%, 0.25)`;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
     function spawnFloatingText() {
       const text = romanticQuotes[Math.floor(Math.random() * romanticQuotes.length)];
-      floatingText = { text, x: 300, y: 100, alpha: 1, timer: 0 };
+      floatingText = { text, x: 400, y: 100, alpha: 1, timer: 0 };
     }
 
     function drawFloatingText() {
@@ -165,11 +164,9 @@
         ctx.font = "28px cursive";
         ctx.fillText(floatingText.text, floatingText.x, floatingText.y);
         ctx.globalAlpha = 1;
-
         floatingText.y -= 0.3;
         floatingText.alpha -= 0.005;
         floatingText.timer++;
-
         if (floatingText.alpha <= 0 || floatingText.timer > 400) {
           floatingText = null;
         }
@@ -184,18 +181,12 @@
       const x = canvas.width;
       if (isSafeToSpawn(x)) {
         const emoji = items[Math.floor(Math.random() * items.length)];
-        collectibles.push({ x: x, y: 320, icon: emoji, collected: false });
+        collectibles.push({ x: x, y: 420, icon: emoji, collected: false });
       }
     }
 
     function spawnObstacle() {
-      obstacles.push({
-        x: canvas.width,
-        y: 330,
-        width: 32,
-        height: 32,
-        icon: '❄️'
-      });
+      obstacles.push({ x: canvas.width, y: 430, width: 32, height: 32, icon: '❄️' });
       nextObstacleFrame = frameCount + 70 + Math.floor(Math.random() * 160);
     }
 
@@ -227,7 +218,7 @@
       });
     }
 
-    function drawScore() {
+    function drawScore(speed) {
       ctx.fillStyle = "#111";
       ctx.font = "20px Arial";
       ctx.fillText("Score: " + score, 20, 30);
@@ -255,21 +246,21 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(backgroundImage, -backgroundOffset, 0, canvas.width, canvas.height);
       ctx.drawImage(backgroundImage, canvas.width - backgroundOffset, 0, canvas.width, canvas.height);
-      backgroundOffset = (backgroundOffset + speed / 4) % canvas.width;
+      backgroundOffset = (backgroundOffset + baseSpeed / 4) % canvas.width;
 
       drawOverlayTint();
       drawFloatingText();
 
       sara.vy += sara.gravity;
       sara.y += sara.vy;
-      if (sara.y >= 300) {
-        sara.y = 300;
+      if (sara.y >= 400) {
+        sara.y = 400;
         sara.vy = 0;
         sara.grounded = true;
       }
 
       collectibles.forEach(item => {
-        item.x -= speed;
+        item.x -= baseSpeed;
         if (
           !item.collected &&
           !sara.ducking &&
@@ -287,21 +278,23 @@
         }
       });
 
-      obstacles.forEach(ob => ob.x -= speed);
+      obstacles.forEach(ob => ob.x -= baseSpeed);
       collectibles = collectibles.filter(item => item.x > -40);
       obstacles = obstacles.filter(ob => ob.x > -40);
+
+      const calculatedSpeed = 7 + Math.floor(score / 10);
+      baseSpeed = calculatedSpeed;
 
       drawSara();
       drawCollectibles();
       drawObstacles();
-      drawScore();
+      drawScore(calculatedSpeed);
       checkObstacleCollision();
 
       if (frameCount % 90 === 0) spawnItem();
       if (frameCount === nextObstacleFrame) spawnObstacle();
       if (frameCount % 600 === 0) spawnFloatingText();
 
-      speed = 7 + score * 0.1;
       frameCount++;
       updateId = requestAnimationFrame(update);
     }
